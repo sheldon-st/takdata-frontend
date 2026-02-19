@@ -2,7 +2,7 @@ services:
   takdata-frontend:
     # Image is published by GitHub Actions to GHCR.
     # Replace with your actual GitHub username/org and repo name.
-    image: ghcr.io/YOUR_GITHUB_USERNAME/takdata-frontend:latest
+    image: ghcr.io/sheldon-st/takdata-frontend:latest
     restart: unless-stopped
 
     networks:
@@ -24,7 +24,7 @@ services:
 networks:
   # Both networks must be created externally and shared across stacks.
   # See deployment instructions for setup commands.
-  proxy:
+  caddy:
     external: true
   takdata:
     external: true
