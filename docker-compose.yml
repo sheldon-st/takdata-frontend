@@ -1,0 +1,30 @@
+services:
+  takdata-frontend:
+    # Image is published by GitHub Actions to GHCR.
+    # Replace with your actual GitHub username/org and repo name.
+    image: ghcr.io/YOUR_GITHUB_USERNAME/takdata-frontend:latest
+    restart: unless-stopped
+
+    networks:
+      - proxy    # shared with caddy-docker-proxy
+      - takdata  # shared with the backend stack
+
+    labels:
+      # caddy-docker-proxy: serve the frontend at data.opengeo.space
+      caddy: data.opengeo.space
+      caddy.reverse_proxy: "{{upstreams 3000}}"
+
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+networks:
+  # Both networks must be created externally and shared across stacks.
+  # See deployment instructions for setup commands.
+  proxy:
+    external: true
+  takdata:
+    external: true
