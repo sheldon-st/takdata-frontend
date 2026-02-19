@@ -54,9 +54,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # NEXT_PUBLIC_API_BASE_URL is baked in at build time.
-          # Set this variable under: Settings → Secrets and variables → Actions → Variables
           build-args: |
-            NEXT_PUBLIC_API_BASE_URL=${{ vars.NEXT_PUBLIC_API_BASE_URL }}
+            NEXT_PUBLIC_API_BASE_URL=https://api.data.opengeo.space
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
