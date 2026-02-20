@@ -2,7 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Radio, Settings, Wifi } from "lucide-react";
+import {
+  CloudSync,
+  LayoutDashboard,
+  Radio,
+  Settings,
+  Wifi,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWsStatus } from "@/components/ws-context";
 import { ModeToggle } from "./theme-toggle";
@@ -22,12 +28,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen bg-background">
       {/* Sidebar */}
-      <aside className="flex w-56 flex-col border-r border-border bg-sidebar">
+      <aside className="flex w-72 flex-col border-r border-border bg-sidebar">
         {/* Logo / brand */}
-        <div className="flex h-14 items-center gap-2 border-b border-border px-4">
-          <Wifi className="h-5 w-5 text-primary" />
-          <span className="font-semibold tracking-tight text-sidebar-foreground">
-            TAK Manager
+        <div className="flex h-14 items-center gap-2 border-b border-border px-4 space-between w-full flex flex-row">
+          <span className="font-semibold tracking-tight text-sidebar-foreground flex flex-row gap-2">
+            <CloudSync className="h-5 w-5 text-primary" />
+            CoT Stream Manager
           </span>
           <ModeToggle />
         </div>
@@ -41,7 +47,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 takConnected ? "bg-green-500" : "bg-muted-foreground",
               )}
             />
-            <span>{takConnected ? "TAK Connected" : "TAK Disconnected"}</span>
+            <span>
+              {takConnected ? "TAKServer Connected" : "TAKServer Disconnected"}
+            </span>
           </div>
         </div>
 
@@ -68,9 +76,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        <div className="px-4 pb-4 text-[10px] text-muted-foreground">
+        {/* <div className="px-4 pb-4 text-[10px] text-muted-foreground">
           TAK Manager v1.0
-        </div>
+        </div> */}
       </aside>
 
       {/* Main content */}

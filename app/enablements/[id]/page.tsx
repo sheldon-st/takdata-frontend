@@ -52,7 +52,7 @@ const GeoFilterMap = dynamic(
 const generalSchema = z.object({
   name: z.string().min(1, "Required"),
   cot_stale: z.coerce.number().int().min(1),
-  uid_key: z.enum(["ICAO", "REG", "FLIGHT"]),
+  uid_key: z.string().min(1),
   alt_upper: z.coerce.number().int().min(0),
   alt_lower: z.coerce.number().int().min(0),
   geo_filter_min_lat: z.number().nullable(),
@@ -91,7 +91,6 @@ export default function EnablementDetailPage() {
 
   const liveStatus = wsStatus?.enablements.find((e) => e.id === enablementId);
   const running = liveStatus?.running ?? enablement?.running ?? false;
-  const isAis = enablement?.type_id === "ais";
 
   const {
     register,
@@ -106,7 +105,7 @@ export default function EnablementDetailPage() {
       ? {
           name: enablement.name,
           cot_stale: enablement.cot_stale,
-          uid_key: enablement.uid_key as "ICAO" | "REG" | "FLIGHT",
+          uid_key: enablement.uid_key,
           alt_upper: enablement.alt_upper,
           alt_lower: enablement.alt_lower,
           geo_filter_min_lat: enablement.geo_filter_min_lat,
@@ -227,11 +226,6 @@ export default function EnablementDetailPage() {
               {enablement.name}
             </h1>
             <Badge variant="secondary">{enablement.type_id.toUpperCase()}</Badge>
-            {isAis && (
-              <Badge variant="outline" className="text-muted-foreground">
-                Coming soon
-              </Badge>
-            )}
           </div>
         </div>
 
@@ -268,9 +262,8 @@ export default function EnablementDetailPage() {
               size="sm"
               variant="outline"
               onClick={() => startMut.mutate()}
-              disabled={startMut.isPending || isAis}
+              disabled={startMut.isPending}
               className="gap-1"
-              title={isAis ? "AIS coming soon" : undefined}
             >
               <Play className="h-3.5 w-3.5" />
               Start
@@ -378,6 +371,72 @@ export default function EnablementDetailPage() {
                       <p className="text-sm font-medium">Geographic Filter</p>
                       <p className="text-xs text-muted-foreground">
                         Only process aircraft inside a bounding box
+                      </p>
+                    </div>
+                    <Switch
+                      checked={geoFilterEnabled}
+                      onCheckedChange={handleGeoFilterToggle}
+                    />
+                  </div>
+
+                  {geoFilterEnabled && (
+                    <GeoFilterMap
+                      value={geoFilterValue}
+                      onChange={handleGeoFilterChange}
+                    />
+                  )}
+                </div>
+              </>
+            )}
+
+            {enablement.type_id === "ais" && (
+              <>
+                <div className="space-y-1.5">
+                  <Label htmlFor="d-stale">CoT Stale Time (seconds)</Label>
+                  <Input
+                    id="d-stale"
+                    type="number"
+                    min={1}
+                    {...register("cot_stale")}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    How long a vessel track persists on a TAK client after the last update
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Vessel ID Key</Label>
+                  <div className="flex gap-2">
+                    {(["MMSI", "CALLSIGN", "NAME"] as const).map((k) => (
+                      <button
+                        key={k}
+                        type="button"
+                        onClick={() => setValue("uid_key", k, { shouldDirty: true })}
+                        className={cn(
+                          "rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
+                          uidKey === k
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border hover:bg-muted/50",
+                        )}
+                      >
+                        {k}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    MMSI = 9-digit identifier (most stable), CALLSIGN = radio callsign, NAME = vessel name
+                  </p>
+                </div>
+
+                <Separator />
+
+                {/* Geographic filter */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">Geographic Filter</p>
+                      <p className="text-xs text-muted-foreground">
+                        Only process vessels inside a bounding box
                       </p>
                     </div>
                     <Switch
@@ -526,6 +585,7 @@ export default function EnablementDetailPage() {
                         }}
                         isPending={addSourceMut.isPending}
                         submitLabel="Add Source"
+                        typeId={enablement.type_id}
                       />
                     </div>
                   )}
@@ -547,6 +607,7 @@ export default function EnablementDetailPage() {
                         }}
                         isPending={addSourceMut.isPending}
                         submitLabel="Add Source"
+                        typeId={enablement.type_id}
                       />
                     </div>
                   )}
@@ -599,7 +660,9 @@ export default function EnablementDetailPage() {
                 </Card>
                 <Card>
                   <CardContent className="pt-4">
-                    <p className="text-xs text-muted-foreground">Active Items</p>
+                    <p className="text-xs text-muted-foreground">
+                      {enablement.type_id === "ais" ? "Active Vessels" : "Active Aircraft"}
+                    </p>
                     <p className="mt-1 text-2xl font-semibold tabular-nums">
                       {liveStatus.active_items}
                     </p>
@@ -658,6 +721,11 @@ export default function EnablementDetailPage() {
                           {stat.aircraft_count !== undefined && (
                             <span className="tabular-nums text-xs">
                               {stat.aircraft_count} aircraft
+                            </span>
+                          )}
+                          {stat.vessel_count !== undefined && (
+                            <span className="tabular-nums text-xs">
+                              {stat.vessel_count} vessels
                             </span>
                           )}
                         </div>

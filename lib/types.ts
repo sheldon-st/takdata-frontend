@@ -126,6 +126,7 @@ export interface SourceUpdate {
 export interface SourceStat {
   last_poll: string | null;
   aircraft_count?: number;
+  vessel_count?: number;
   [key: string]: unknown;
 }
 

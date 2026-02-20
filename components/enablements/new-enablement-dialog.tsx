@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,7 +18,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
@@ -40,7 +39,7 @@ const GeoFilterMap = dynamic(
 const schema = z.object({
   name: z.string().min(1, "Name is required"),
   cot_stale: z.coerce.number().int().min(1),
-  uid_key: z.enum(["ICAO", "REG", "FLIGHT"]),
+  uid_key: z.string().min(1),
   alt_upper: z.coerce.number().int().min(0),
   alt_lower: z.coerce.number().int().min(0),
   geo_filter_min_lat: z.number().nullable(),
@@ -113,6 +112,15 @@ export function NewEnablementDialog({ onCreated }: NewEnablementDialogProps) {
     }
   };
 
+  // Reset uid_key default to match the selected enablement type
+  useEffect(() => {
+    if (selectedType?.type_id === "ais") {
+      setValue("uid_key", "MMSI");
+    } else if (selectedType?.type_id === "adsb") {
+      setValue("uid_key", "ICAO");
+    }
+  }, [selectedType, setValue]);
+
   const uidKey = watch("uid_key") ?? "ICAO";
 
   const geoFilterValue: GeoFilterBbox | null = (() => {
@@ -143,7 +151,7 @@ export function NewEnablementDialog({ onCreated }: NewEnablementDialogProps) {
     if (!enabled) handleGeoFilterChange(null);
   };
 
-  const showMap = selectedType?.type_id === "adsb";
+  const showMap = selectedType?.type_id === "adsb" || selectedType?.type_id === "ais";
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -191,11 +199,6 @@ export function NewEnablementDialog({ onCreated }: NewEnablementDialogProps) {
                 >
                   <div className="flex items-center gap-2">
                     <span className="font-medium">{t.display_name}</span>
-                    {t.type_id === "ais" && (
-                      <Badge variant="secondary" className="text-[10px]">
-                        Coming soon
-                      </Badge>
-                    )}
                   </div>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     {t.description}
@@ -295,6 +298,72 @@ export function NewEnablementDialog({ onCreated }: NewEnablementDialogProps) {
                       <p className="text-sm font-medium">Geographic Filter</p>
                       <p className="text-xs text-muted-foreground">
                         Only process aircraft inside a bounding box
+                      </p>
+                    </div>
+                    <Switch
+                      checked={geoFilterEnabled}
+                      onCheckedChange={handleGeoFilterToggle}
+                    />
+                  </div>
+
+                  {geoFilterEnabled && (
+                    <GeoFilterMap
+                      value={geoFilterValue}
+                      onChange={handleGeoFilterChange}
+                    />
+                  )}
+                </div>
+              </>
+            )}
+
+            {selectedType.type_id === "ais" && (
+              <>
+                <div className="space-y-1.5">
+                  <Label htmlFor="en-cot-stale">CoT Stale Time (seconds)</Label>
+                  <Input
+                    id="en-cot-stale"
+                    type="number"
+                    min={1}
+                    {...register("cot_stale")}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    How long a vessel track persists on a TAK client after the last update
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label>Vessel ID Key</Label>
+                  <div className="flex gap-2">
+                    {(["MMSI", "CALLSIGN", "NAME"] as const).map((k) => (
+                      <button
+                        key={k}
+                        type="button"
+                        onClick={() => setValue("uid_key", k)}
+                        className={cn(
+                          "rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
+                          uidKey === k
+                            ? "border-primary bg-primary text-primary-foreground"
+                            : "border-border hover:bg-muted/50",
+                        )}
+                      >
+                        {k}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    MMSI = 9-digit identifier (most stable), CALLSIGN = radio callsign, NAME = vessel name
+                  </p>
+                </div>
+
+                <Separator />
+
+                {/* Geographic filter section */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">Geographic Filter</p>
+                      <p className="text-xs text-muted-foreground">
+                        Only process vessels inside a bounding box
                       </p>
                     </div>
                     <Switch

@@ -18,7 +18,6 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { startEnablement, stopEnablement, deleteEnablement } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import type { EnablementResponse, EnablementStatusItem } from "@/lib/types";
@@ -37,7 +36,6 @@ export function EnablementCard({ enablement, liveStatus }: EnablementCardProps) 
   const activeItems = liveStatus?.active_items ?? 0;
   const eventsSent = liveStatus?.events_sent ?? 0;
   const lastError = liveStatus?.last_error;
-  const isAis = enablement.type_id === "ais";
 
   const startMut = useMutation({
     mutationFn: () => startEnablement(enablement.id),
@@ -84,14 +82,6 @@ export function EnablementCard({ enablement, liveStatus }: EnablementCardProps) 
               <Badge variant="secondary" className="px-1.5 py-0 text-[10px]">
                 {enablement.type_id.toUpperCase()}
               </Badge>
-              {isAis && (
-                <Badge
-                  variant="outline"
-                  className="px-1.5 py-0 text-[10px] text-muted-foreground"
-                >
-                  Coming soon
-                </Badge>
-              )}
             </div>
           </div>
 
@@ -156,23 +146,16 @@ export function EnablementCard({ enablement, liveStatus }: EnablementCardProps) 
               Stop
             </Button>
           ) : (
-            <Tooltip>
-              <TooltipTrigger render={<span />}>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => startMut.mutate()}
-                  disabled={isBusy || isAis}
-                  className="h-7 gap-1 px-2 text-xs"
-                >
-                  <Play className="h-3 w-3" />
-                  Start
-                </Button>
-              </TooltipTrigger>
-              {isAis && (
-                <TooltipContent>AIS support is coming soon</TooltipContent>
-              )}
-            </Tooltip>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => startMut.mutate()}
+              disabled={isBusy}
+              className="h-7 gap-1 px-2 text-xs"
+            >
+              <Play className="h-3 w-3" />
+              Start
+            </Button>
           )}
 
           <Button

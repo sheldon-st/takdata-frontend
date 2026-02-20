@@ -33,12 +33,17 @@ const schema = z
 
 export type SourceFormValues = z.infer<typeof schema>;
 
+const ENDPOINT_LABELS: Record<string, Record<"geo" | "point" | "mil", string>> = {
+  ais: { geo: "Area", point: "Radius", mil: "Global" },
+};
+
 interface SourceFormProps {
   defaultValues?: Partial<SourceResponse | KnownSource>;
   onSubmit: (values: SourceCreate) => void;
   onCancel: () => void;
   isPending?: boolean;
   submitLabel?: string;
+  typeId?: string;
 }
 
 export function SourceForm({
@@ -47,6 +52,7 @@ export function SourceForm({
   onCancel,
   isPending,
   submitLabel = "Save",
+  typeId,
 }: SourceFormProps) {
   const {
     register,
@@ -87,6 +93,7 @@ export function SourceForm({
   const endpoint = watch("endpoint");
   const needsGeo = endpoint === "geo" || endpoint === "point";
   const enabled = watch("enabled");
+  const endpointLabels = typeId && ENDPOINT_LABELS[typeId] ? ENDPOINT_LABELS[typeId] : { geo: "geo", point: "point", mil: "mil" };
 
   const handleFormSubmit = (values: SourceFormValues) => {
     onSubmit({
@@ -151,10 +158,15 @@ export function SourceForm({
                   : "border-border hover:bg-muted/50"
               }`}
             >
-              {ep}
+              {endpointLabels[ep]}
             </button>
           ))}
         </div>
+        {typeId === "ais" && (
+          <p className="text-xs text-muted-foreground">
+            Area / Radius = geographic filter (requires lat, lon, distance) · Global = full feed with no location filter
+          </p>
+        )}
       </div>
 
       {/* Geo fields */}

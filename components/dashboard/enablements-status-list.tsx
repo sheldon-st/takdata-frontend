@@ -76,7 +76,6 @@ export function EnablementsStatusList() {
         ) : (
           <div className="divide-y divide-border">
             {enablements.map((e) => {
-              const isAis = e.type_id === "ais";
               const isBusy =
                 startMut.isPending || stopMut.isPending;
 
@@ -139,9 +138,8 @@ export function EnablementsStatusList() {
                       size="sm"
                       variant="outline"
                       onClick={() => startMut.mutate(e.id)}
-                      disabled={isBusy || isAis}
+                      disabled={isBusy}
                       className="h-7 gap-1 px-2 text-xs"
-                      title={isAis ? "AIS coming soon" : undefined}
                     >
                       <Play className="h-3 w-3" />
                       Start
