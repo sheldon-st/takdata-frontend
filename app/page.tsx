@@ -6,9 +6,9 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        {/* <p className="mt-1 text-sm text-muted-foreground">
           Live system status — updates every 2 seconds.
-        </p>
+        </p> */}
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">

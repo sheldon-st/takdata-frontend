@@ -168,6 +168,13 @@ export interface ApiError {
   detail: string;
 }
 
+// Packages
+export interface PackageResponse {
+  package_id: string;
+  filename: string;
+  size: number;
+}
+
 // Known source template (returned by GET /enablements/:id/known-sources)
 export interface KnownSource {
   name: string;

@@ -7,4 +7,5 @@ export const queryKeys = {
   enablement: (id: number) => ["enablements", id] as const,
   sources: (enablementId: number) => ["enablements", enablementId, "sources"] as const,
   knownSources: (enablementId: number) => ["enablements", enablementId, "known-sources"] as const,
+  packages: ["packages"] as const,
 } as const;

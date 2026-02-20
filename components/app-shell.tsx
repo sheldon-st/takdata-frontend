@@ -5,9 +5,9 @@ import { usePathname } from "next/navigation";
 import {
   CloudSync,
   LayoutDashboard,
+  Package,
   Radio,
   Settings,
-  Wifi,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWsStatus } from "@/components/ws-context";
@@ -16,6 +16,7 @@ import { ModeToggle } from "./theme-toggle";
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/enablements", label: "Enablements", icon: Radio },
+  { href: "/packages", label: "Packages", icon: Package },
   { href: "/settings/tak", label: "TAK Settings", icon: Settings },
 ];
 

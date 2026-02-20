@@ -11,6 +11,7 @@ import type {
   SourceCreate,
   SourceUpdate,
   KnownSource,
+  PackageResponse,
 } from "./types";
 
 const BASE_URL =
@@ -148,3 +149,34 @@ export const deleteSource = (enablementId: number, sourceId: number) =>
   request<void>(`/api/v1/enablements/${enablementId}/sources/${sourceId}`, {
     method: "DELETE",
   });
+
+// ── Packages ─────────────────────────────────────────────────────────────────
+
+export const getPackages = () =>
+  request<PackageResponse[]>("/api/v1/packages");
+
+export const getPackageDownloadUrl = (packageId: string) =>
+  `${BASE_URL}/api/v1/packages/${packageId}`;
+
+export const uploadPackage = (file: File) => {
+  const form = new FormData();
+  form.append("file", file);
+  return fetch(`${BASE_URL}/api/v1/packages`, {
+    method: "POST",
+    body: form,
+  }).then(async (res) => {
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ detail: res.statusText }));
+      const err = new Error(
+        typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail),
+      ) as Error & { status: number; body: unknown };
+      err.status = res.status;
+      err.body = body;
+      throw err;
+    }
+    return res.json() as Promise<PackageResponse>;
+  });
+};
+
+export const deletePackage = (packageId: string) =>
+  request<void>(`/api/v1/packages/${packageId}`, { method: "DELETE" });
