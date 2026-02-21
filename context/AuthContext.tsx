@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext } from "react";
+import { createContext, useContext, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getMe } from "@/lib/api";
 import type { User } from "@/lib/types";
@@ -23,10 +23,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     retry: false,
   });
 
+  useEffect(() => {
+    if ((error as any)?.status === 401) {
+      window.location.reload();
+    }
+  }, [error]);
+
   if (isLoading) return <AppLoadingShell />;
 
   if ((error as any)?.status === 401) {
-    window.location.reload();
     return <AppLoadingShell />;
   }
 
