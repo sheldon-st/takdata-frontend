@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useWsStatus } from "@/components/ws-context";
 import { postTakConnect, postTakDisconnect } from "@/lib/api";
+import { AdminOnly } from "@/components/AdminOnly";
 import { cn } from "@/lib/utils";
 
 export function TakStatusCard() {
@@ -68,30 +69,32 @@ export function TakStatusCard() {
           </p>
         )}
 
-        <div className="flex gap-2">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => connectMut.mutate()}
-            disabled={connectMut.isPending || disconnectMut.isPending}
-            className="gap-1.5"
-          >
-            <PlugZap className="h-3.5 w-3.5" />
-            {connected ? "Reconnect" : "Connect"}
-          </Button>
-          {connected && (
+        <AdminOnly>
+          <div className="flex gap-2">
             <Button
               size="sm"
               variant="outline"
-              onClick={() => disconnectMut.mutate()}
+              onClick={() => connectMut.mutate()}
               disabled={connectMut.isPending || disconnectMut.isPending}
-              className="gap-1.5 text-destructive hover:text-destructive"
+              className="gap-1.5"
             >
-              <Plug className="h-3.5 w-3.5" />
-              Disconnect
+              <PlugZap className="h-3.5 w-3.5" />
+              {connected ? "Reconnect" : "Connect"}
             </Button>
-          )}
-        </div>
+            {connected && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => disconnectMut.mutate()}
+                disabled={connectMut.isPending || disconnectMut.isPending}
+                className="gap-1.5 text-destructive hover:text-destructive"
+              >
+                <Plug className="h-3.5 w-3.5" />
+                Disconnect
+              </Button>
+            )}
+          </div>
+        </AdminOnly>
       </CardContent>
     </Card>
   );

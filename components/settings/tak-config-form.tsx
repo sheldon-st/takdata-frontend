@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CertList } from "@/components/settings/cert-list";
 import { getTakConfig, putTakConfig, postTakConnect, postTakDisconnect } from "@/lib/api";
+import { AdminOnly } from "@/components/AdminOnly";
 import { queryKeys } from "@/lib/query-keys";
 import { useWsStatus } from "@/components/ws-context";
 
@@ -258,40 +259,42 @@ export function TakConfigForm() {
       <Separator />
 
       {/* Actions */}
-      <div className="flex flex-wrap items-center gap-3">
-        <Button
-          type="submit"
-          disabled={saveMut.isPending || !isDirty}
-          className="gap-1.5"
-        >
-          <Save className="h-4 w-4" />
-          {saveMut.isPending ? "Saving…" : "Save"}
-        </Button>
+      <AdminOnly>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            type="submit"
+            disabled={saveMut.isPending || !isDirty}
+            className="gap-1.5"
+          >
+            <Save className="h-4 w-4" />
+            {saveMut.isPending ? "Saving…" : "Save"}
+          </Button>
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => connectMut.mutate()}
-          disabled={connectMut.isPending || disconnectMut.isPending}
-          className="gap-1.5"
-        >
-          <PlugZap className="h-4 w-4" />
-          {takConnected ? "Reconnect" : "Connect"}
-        </Button>
-
-        {takConnected && (
           <Button
             type="button"
             variant="outline"
-            onClick={() => disconnectMut.mutate()}
+            onClick={() => connectMut.mutate()}
             disabled={connectMut.isPending || disconnectMut.isPending}
-            className="gap-1.5 text-destructive hover:text-destructive"
+            className="gap-1.5"
           >
-            <Plug className="h-4 w-4" />
-            Disconnect
+            <PlugZap className="h-4 w-4" />
+            {takConnected ? "Reconnect" : "Connect"}
           </Button>
-        )}
-      </div>
+
+          {takConnected && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => disconnectMut.mutate()}
+              disabled={connectMut.isPending || disconnectMut.isPending}
+              className="gap-1.5 text-destructive hover:text-destructive"
+            >
+              <Plug className="h-4 w-4" />
+              Disconnect
+            </Button>
+          )}
+        </div>
+      </AdminOnly>
     </form>
   );
 }

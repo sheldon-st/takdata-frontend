@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getCerts, uploadCert, deleteCert } from "@/lib/api";
+import { AdminOnly } from "@/components/AdminOnly";
 import { queryKeys } from "@/lib/query-keys";
 import type { CertInfo } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -57,24 +58,26 @@ export function CertList({ selectedCertId, onSelect }: CertListProps) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium">Certificates (.p12)</p>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-1.5"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploadMut.isPending}
-        >
-          <Upload className="h-3.5 w-3.5" />
-          Upload .p12
-        </Button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".p12"
-          className="hidden"
-          onChange={handleFileChange}
-        />
+        <AdminOnly>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadMut.isPending}
+          >
+            <Upload className="h-3.5 w-3.5" />
+            Upload .p12
+          </Button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".p12"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+        </AdminOnly>
       </div>
 
       {isLoading ? (
@@ -127,16 +130,18 @@ export function CertList({ selectedCertId, onSelect }: CertListProps) {
                   {cert.filename}
                 </span>
               </button>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="h-7 w-7 shrink-0 p-0 text-muted-foreground hover:text-destructive"
-                onClick={() => deleteMut.mutate(cert.cert_id)}
-                disabled={deleteMut.isPending}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+              <AdminOnly>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 shrink-0 p-0 text-muted-foreground hover:text-destructive"
+                  onClick={() => deleteMut.mutate(cert.cert_id)}
+                  disabled={deleteMut.isPending}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </AdminOnly>
             </div>
           ))}
         </div>

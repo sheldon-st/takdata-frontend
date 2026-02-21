@@ -31,6 +31,7 @@ import {
   uploadPackage,
 } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
+import { AdminOnly } from "@/components/AdminOnly";
 import { cn } from "@/lib/utils";
 
 const MAX_SIZE = 100 * 1024 * 1024;
@@ -132,55 +133,57 @@ export default function PackagesPage() {
       </div>
 
       {/* Upload zone */}
-      <div className="space-y-2">
-        <div
-          role="button"
-          tabIndex={0}
-          aria-label="Upload a .zip file"
-          className={cn(
-            "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors",
-            isDragging
-              ? "border-primary bg-primary/5"
-              : "border-border hover:border-primary/50 hover:bg-muted/30",
-            uploadMut.isPending && "pointer-events-none opacity-60",
-          )}
-          onClick={() => fileInputRef.current?.click()}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ")
-              fileInputRef.current?.click();
-          }}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={() => setIsDragging(false)}
-        >
-          <UploadCloud
+      <AdminOnly>
+        <div className="space-y-2">
+          <div
+            role="button"
+            tabIndex={0}
+            aria-label="Upload a .zip file"
             className={cn(
-              "h-8 w-8",
-              isDragging ? "text-primary" : "text-muted-foreground",
+              "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-6 py-10 text-center transition-colors",
+              isDragging
+                ? "border-primary bg-primary/5"
+                : "border-border hover:border-primary/50 hover:bg-muted/30",
+              uploadMut.isPending && "pointer-events-none opacity-60",
             )}
+            onClick={() => fileInputRef.current?.click()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ")
+                fileInputRef.current?.click();
+            }}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={() => setIsDragging(false)}
+          >
+            <UploadCloud
+              className={cn(
+                "h-8 w-8",
+                isDragging ? "text-primary" : "text-muted-foreground",
+              )}
+            />
+            {uploadMut.isPending ? (
+              <p className="text-sm text-muted-foreground">Uploading…</p>
+            ) : (
+              <>
+                <p className="text-sm font-medium">
+                  Drag & drop a .zip file here, or click to select
+                </p>
+                <p className="text-xs text-muted-foreground">Max size: 100 MB</p>
+              </>
+            )}
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".zip"
+            className="hidden"
+            onChange={handleFileChange}
           />
-          {uploadMut.isPending ? (
-            <p className="text-sm text-muted-foreground">Uploading…</p>
-          ) : (
-            <>
-              <p className="text-sm font-medium">
-                Drag & drop a .zip file here, or click to select
-              </p>
-              <p className="text-xs text-muted-foreground">Max size: 100 MB</p>
-            </>
+          {uploadError && (
+            <p className="text-sm text-destructive">{uploadError}</p>
           )}
         </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept=".zip"
-          className="hidden"
-          onChange={handleFileChange}
-        />
-        {uploadError && (
-          <p className="text-sm text-destructive">{uploadError}</p>
-        )}
-      </div>
+      </AdminOnly>
 
       {/* Package list */}
       <div className="space-y-2">
@@ -226,15 +229,17 @@ export default function PackagesPage() {
                         >
                           <Download className="h-3.5 w-3.5" />
                         </a>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-muted-foreground hover:text-destructive"
-                          onClick={() => setPendingDeleteId(pkg.package_id)}
-                          disabled={deleteMut.isPending}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </Button>
+                        <AdminOnly>
+                          <Button
+                            variant="ghost"
+                            size="icon-sm"
+                            className="text-muted-foreground hover:text-destructive"
+                            onClick={() => setPendingDeleteId(pkg.package_id)}
+                            disabled={deleteMut.isPending}
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
+                        </AdminOnly>
                       </div>
                     </TableCell>
                   </TableRow>

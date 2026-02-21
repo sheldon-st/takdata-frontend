@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWsStatus } from "@/components/ws-context";
 import { startEnablement, stopEnablement } from "@/lib/api";
+import { AdminOnly } from "@/components/AdminOnly";
 import { queryKeys } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
 
@@ -122,29 +123,31 @@ export function EnablementsStatusList() {
                   )}
 
                   {/* Start / Stop */}
-                  {e.running ? (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => stopMut.mutate(e.id)}
-                      disabled={isBusy}
-                      className="h-7 gap-1 px-2 text-xs"
-                    >
-                      <Square className="h-3 w-3" />
-                      Stop
-                    </Button>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => startMut.mutate(e.id)}
-                      disabled={isBusy}
-                      className="h-7 gap-1 px-2 text-xs"
-                    >
-                      <Play className="h-3 w-3" />
-                      Start
-                    </Button>
-                  )}
+                  <AdminOnly>
+                    {e.running ? (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => stopMut.mutate(e.id)}
+                        disabled={isBusy}
+                        className="h-7 gap-1 px-2 text-xs"
+                      >
+                        <Square className="h-3 w-3" />
+                        Stop
+                      </Button>
+                    ) : (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => startMut.mutate(e.id)}
+                        disabled={isBusy}
+                        className="h-7 gap-1 px-2 text-xs"
+                      >
+                        <Play className="h-3 w-3" />
+                        Start
+                      </Button>
+                    )}
+                  </AdminOnly>
                 </div>
               );
             })}

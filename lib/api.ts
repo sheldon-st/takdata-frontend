@@ -1,4 +1,5 @@
 import type {
+  User,
   TakConfigResponse,
   TakConfigUpdate,
   TakStatusResponse,
@@ -43,6 +44,10 @@ async function request<T>(
 
   return res.json() as Promise<T>;
 }
+
+// ── Auth ─────────────────────────────────────────────────────────────────────
+
+export const getMe = () => request<User>("/api/v1/me");
 
 // ── TAK Config ──────────────────────────────────────────────────────────────
 

@@ -1,5 +1,10 @@
 // TypeScript types derived from the OpenAPI spec
 
+export interface User {
+  username: string;
+  role: "admin" | "viewer";
+}
+
 export interface CertInfo {
   cert_id: string;
   filename: string;

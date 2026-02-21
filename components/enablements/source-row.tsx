@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { SourceForm } from "@/components/enablements/source-form";
 import { putSource, deleteSource } from "@/lib/api";
+import { AdminOnly } from "@/components/AdminOnly";
 import { queryKeys } from "@/lib/query-keys";
 import type { SourceResponse, SourceCreate } from "@/lib/types";
 
@@ -64,12 +65,14 @@ export function SourceRow({ source, enablementId }: SourceRowProps) {
     <div className="border-b border-border last:border-0">
       {/* Row summary */}
       <div className="flex items-center gap-3 py-3">
-        <Switch
-          checked={source.enabled}
-          onCheckedChange={(v) => toggleMut.mutate(v)}
-          disabled={toggleMut.isPending}
-          className="shrink-0"
-        />
+        <AdminOnly>
+          <Switch
+            checked={source.enabled}
+            onCheckedChange={(v) => toggleMut.mutate(v)}
+            disabled={toggleMut.isPending}
+            className="shrink-0"
+          />
+        </AdminOnly>
 
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium">{source.name}</p>
@@ -88,65 +91,69 @@ export function SourceRow({ source, enablementId }: SourceRowProps) {
           </div>
         </div>
 
-        <div className="flex shrink-0 items-center gap-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-7 w-7 p-0"
-            onClick={() => setEditing(!editing)}
-          >
-            {editing ? (
-              <ChevronUp className="h-3.5 w-3.5" />
-            ) : (
-              <Pencil className="h-3.5 w-3.5" />
-            )}
-          </Button>
-
-          <AlertDialog>
-            <AlertDialogTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-                />
-              }
+        <AdminOnly>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 w-7 p-0"
+              onClick={() => setEditing(!editing)}
             >
-              <Trash2 className="h-3.5 w-3.5" />
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete source?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will permanently delete the source &quot;{source.name}&quot;.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => deleteMut.mutate()}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
+              {editing ? (
+                <ChevronUp className="h-3.5 w-3.5" />
+              ) : (
+                <Pencil className="h-3.5 w-3.5" />
+              )}
+            </Button>
+
+            <AlertDialog>
+              <AlertDialogTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                  />
+                }
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete source?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete the source &quot;{source.name}&quot;.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => deleteMut.mutate()}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </AdminOnly>
       </div>
 
       {/* Inline edit form */}
-      {editing && (
-        <div className="bg-muted/30 mb-3 rounded-md border border-border p-4">
-          <SourceForm
-            defaultValues={source}
-            onSubmit={(v) => updateMut.mutate(v)}
-            onCancel={() => setEditing(false)}
-            isPending={updateMut.isPending}
-            submitLabel="Update Source"
-          />
-        </div>
-      )}
+      <AdminOnly>
+        {editing && (
+          <div className="bg-muted/30 mb-3 rounded-md border border-border p-4">
+            <SourceForm
+              defaultValues={source}
+              onSubmit={(v) => updateMut.mutate(v)}
+              onCancel={() => setEditing(false)}
+              isPending={updateMut.isPending}
+              submitLabel="Update Source"
+            />
+          </div>
+        )}
+      </AdminOnly>
     </div>
   );
 }

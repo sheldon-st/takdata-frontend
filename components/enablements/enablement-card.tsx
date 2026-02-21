@@ -21,6 +21,7 @@ import {
 import { startEnablement, stopEnablement, deleteEnablement } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
 import type { EnablementResponse, EnablementStatusItem } from "@/lib/types";
+import { AdminOnly } from "@/components/AdminOnly";
 import { cn } from "@/lib/utils";
 
 interface EnablementCardProps {
@@ -132,74 +133,76 @@ export function EnablementCard({ enablement, liveStatus }: EnablementCardProps) 
         </p>
 
         {/* Actions */}
-        <div className="flex items-center gap-2 border-t border-border pt-3">
-          {/* Start / Stop */}
-          {running ? (
+        <AdminOnly>
+          <div className="flex items-center gap-2 border-t border-border pt-3">
+            {/* Start / Stop */}
+            {running ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => stopMut.mutate()}
+                disabled={isBusy}
+                className="h-7 gap-1 px-2 text-xs"
+              >
+                <Square className="h-3 w-3" />
+                Stop
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => startMut.mutate()}
+                disabled={isBusy}
+                className="h-7 gap-1 px-2 text-xs"
+              >
+                <Play className="h-3 w-3" />
+                Start
+              </Button>
+            )}
+
             <Button
               size="sm"
-              variant="outline"
-              onClick={() => stopMut.mutate()}
-              disabled={isBusy}
+              variant="ghost"
+              onClick={() => router.push(`/enablements/${enablement.id}`)}
               className="h-7 gap-1 px-2 text-xs"
             >
-              <Square className="h-3 w-3" />
-              Stop
+              <Pencil className="h-3 w-3" />
+              Edit
             </Button>
-          ) : (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => startMut.mutate()}
-              disabled={isBusy}
-              className="h-7 gap-1 px-2 text-xs"
-            >
-              <Play className="h-3 w-3" />
-              Start
-            </Button>
-          )}
 
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => router.push(`/enablements/${enablement.id}`)}
-            className="h-7 gap-1 px-2 text-xs"
-          >
-            <Pencil className="h-3 w-3" />
-            Edit
-          </Button>
-
-          <AlertDialog>
-            <AlertDialogTrigger
-              render={
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="ml-auto h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-                />
-              }
-            >
-              <Trash2 className="h-3.5 w-3.5" />
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Delete enablement?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This will permanently delete &quot;{enablement.name}&quot; and all its
-                  sources. This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => deleteMut.mutate()}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        </div>
+            <AlertDialog>
+              <AlertDialogTrigger
+                render={
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="ml-auto h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                  />
+                }
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Delete enablement?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete &quot;{enablement.name}&quot; and all its
+                    sources. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => deleteMut.mutate()}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </AdminOnly>
       </CardContent>
     </Card>
   );

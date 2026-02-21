@@ -28,6 +28,8 @@ import {
 import { SourceRow } from "@/components/enablements/source-row";
 import { SourceForm } from "@/components/enablements/source-form";
 import { useWsStatus } from "@/components/ws-context";
+import { useIsAdmin } from "@/context/AuthContext";
+import { AdminOnly } from "@/components/AdminOnly";
 import {
   getEnablement,
   putEnablement,
@@ -70,6 +72,7 @@ export default function EnablementDetailPage() {
   const queryClient = useQueryClient();
   const { status: wsStatus } = useWsStatus();
 
+  const isAdmin = useIsAdmin();
   const [addSourceOpen, setAddSourceOpen] = useState(false);
   const [addSourceMode, setAddSourceMode] = useState<"pick" | "custom" | "template">(
     "pick",
@@ -246,29 +249,31 @@ export default function EnablementDetailPage() {
             {running ? "Running" : "Stopped"}
           </span>
 
-          {running ? (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => stopMut.mutate()}
-              disabled={stopMut.isPending}
-              className="gap-1"
-            >
-              <Square className="h-3.5 w-3.5" />
-              Stop
-            </Button>
-          ) : (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => startMut.mutate()}
-              disabled={startMut.isPending}
-              className="gap-1"
-            >
-              <Play className="h-3.5 w-3.5" />
-              Start
-            </Button>
-          )}
+          <AdminOnly>
+            {running ? (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => stopMut.mutate()}
+                disabled={stopMut.isPending}
+                className="gap-1"
+              >
+                <Square className="h-3.5 w-3.5" />
+                Stop
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => startMut.mutate()}
+                disabled={startMut.isPending}
+                className="gap-1"
+              >
+                <Play className="h-3.5 w-3.5" />
+                Start
+              </Button>
+            )}
+          </AdminOnly>
         </div>
       </div>
 
@@ -293,7 +298,7 @@ export default function EnablementDetailPage() {
           >
             <div className="space-y-1.5">
               <Label htmlFor="d-name">Name</Label>
-              <Input id="d-name" {...register("name")} />
+              <Input id="d-name" {...register("name")} disabled={!isAdmin} />
               {errors.name && (
                 <p className="text-xs text-destructive">{errors.name.message}</p>
               )}
@@ -307,6 +312,7 @@ export default function EnablementDetailPage() {
                     id="d-stale"
                     type="number"
                     min={1}
+                    disabled={!isAdmin}
                     {...register("cot_stale")}
                   />
                   <p className="text-xs text-muted-foreground">
@@ -321,6 +327,7 @@ export default function EnablementDetailPage() {
                       <button
                         key={k}
                         type="button"
+                        disabled={!isAdmin}
                         onClick={() => setValue("uid_key", k, { shouldDirty: true })}
                         className={cn(
                           "rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
@@ -346,6 +353,7 @@ export default function EnablementDetailPage() {
                       id="d-alt-upper"
                       type="number"
                       min={0}
+                      disabled={!isAdmin}
                       {...register("alt_upper")}
                     />
                     <p className="text-xs text-muted-foreground">0 = no filter</p>
@@ -356,6 +364,7 @@ export default function EnablementDetailPage() {
                       id="d-alt-lower"
                       type="number"
                       min={0}
+                      disabled={!isAdmin}
                       {...register("alt_lower")}
                     />
                     <p className="text-xs text-muted-foreground">0 = no filter</p>
@@ -376,6 +385,7 @@ export default function EnablementDetailPage() {
                     <Switch
                       checked={geoFilterEnabled}
                       onCheckedChange={handleGeoFilterToggle}
+                      disabled={!isAdmin}
                     />
                   </div>
 
@@ -397,6 +407,7 @@ export default function EnablementDetailPage() {
                     id="d-stale"
                     type="number"
                     min={1}
+                    disabled={!isAdmin}
                     {...register("cot_stale")}
                   />
                   <p className="text-xs text-muted-foreground">
@@ -411,6 +422,7 @@ export default function EnablementDetailPage() {
                       <button
                         key={k}
                         type="button"
+                        disabled={!isAdmin}
                         onClick={() => setValue("uid_key", k, { shouldDirty: true })}
                         className={cn(
                           "rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
@@ -442,6 +454,7 @@ export default function EnablementDetailPage() {
                     <Switch
                       checked={geoFilterEnabled}
                       onCheckedChange={handleGeoFilterToggle}
+                      disabled={!isAdmin}
                     />
                   </div>
 
@@ -455,13 +468,15 @@ export default function EnablementDetailPage() {
               </>
             )}
 
-            <Button
-              type="submit"
-              disabled={saveMut.isPending || !isDirty}
-              className="gap-1.5"
-            >
-              {saveMut.isPending ? "Saving…" : "Save Changes"}
-            </Button>
+            <AdminOnly>
+              <Button
+                type="submit"
+                disabled={saveMut.isPending || !isDirty}
+                className="gap-1.5"
+              >
+                {saveMut.isPending ? "Saving…" : "Save Changes"}
+              </Button>
+            </AdminOnly>
           </form>
         </TabsContent>
 
@@ -475,20 +490,21 @@ export default function EnablementDetailPage() {
                   : `${enablement.sources.length} source${enablement.sources.length !== 1 ? "s" : ""}`}
               </p>
 
-              <Dialog
-                open={addSourceOpen}
-                onOpenChange={(v) => {
-                  setAddSourceOpen(v);
-                  if (!v) {
-                    setAddSourceMode("pick");
-                    setSelectedTemplate(null);
-                  }
-                }}
-              >
-                <DialogTrigger render={<Button size="sm" className="gap-1.5" />}>
-                  <Plus className="h-3.5 w-3.5" />
-                  Add Source
-                </DialogTrigger>
+              <AdminOnly>
+                <Dialog
+                  open={addSourceOpen}
+                  onOpenChange={(v) => {
+                    setAddSourceOpen(v);
+                    if (!v) {
+                      setAddSourceMode("pick");
+                      setSelectedTemplate(null);
+                    }
+                  }}
+                >
+                  <DialogTrigger render={<Button size="sm" className="gap-1.5" />}>
+                    <Plus className="h-3.5 w-3.5" />
+                    Add Source
+                  </DialogTrigger>
 
                 <DialogContent className="max-w-lg">
                   <DialogHeader>
@@ -612,7 +628,8 @@ export default function EnablementDetailPage() {
                     </div>
                   )}
                 </DialogContent>
-              </Dialog>
+                </Dialog>
+              </AdminOnly>
             </div>
 
             {enablement.sources.length === 0 ? (

@@ -8,6 +8,7 @@ import { NewEnablementDialog } from "@/components/enablements/new-enablement-dia
 import { useWsStatus } from "@/components/ws-context";
 import { getEnablements } from "@/lib/api";
 import { queryKeys } from "@/lib/query-keys";
+import { AdminOnly } from "@/components/AdminOnly";
 
 export default function EnablementsPage() {
   const router = useRouter();
@@ -31,7 +32,9 @@ export default function EnablementsPage() {
             Configure and manage your data stream instances.
           </p>
         </div>
-        <NewEnablementDialog onCreated={(id) => router.push(`/enablements/${id}`)} />
+        <AdminOnly>
+          <NewEnablementDialog onCreated={(id) => router.push(`/enablements/${id}`)} />
+        </AdminOnly>
       </div>
 
       {isLoading ? (
@@ -49,7 +52,9 @@ export default function EnablementsPage() {
             Create your first data stream to get started.
           </p>
           <div className="mt-4">
-            <NewEnablementDialog onCreated={(id) => router.push(`/enablements/${id}`)} />
+            <AdminOnly>
+              <NewEnablementDialog onCreated={(id) => router.push(`/enablements/${id}`)} />
+            </AdminOnly>
           </div>
         </div>
       ) : (
