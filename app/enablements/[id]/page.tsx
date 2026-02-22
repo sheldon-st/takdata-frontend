@@ -249,31 +249,29 @@ export default function EnablementDetailPage() {
             {running ? "Running" : "Stopped"}
           </span>
 
-          <AdminOnly>
-            {running ? (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => stopMut.mutate()}
-                disabled={stopMut.isPending}
-                className="gap-1"
-              >
-                <Square className="h-3.5 w-3.5" />
-                Stop
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => startMut.mutate()}
-                disabled={startMut.isPending}
-                className="gap-1"
-              >
-                <Play className="h-3.5 w-3.5" />
-                Start
-              </Button>
-            )}
-          </AdminOnly>
+          {running ? (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => stopMut.mutate()}
+              disabled={stopMut.isPending}
+              className="gap-1"
+            >
+              <Square className="h-3.5 w-3.5" />
+              Stop
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => startMut.mutate()}
+              disabled={startMut.isPending}
+              className="gap-1"
+            >
+              <Play className="h-3.5 w-3.5" />
+              Start
+            </Button>
+          )}
         </div>
       </div>
 

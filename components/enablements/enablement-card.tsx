@@ -133,33 +133,33 @@ export function EnablementCard({ enablement, liveStatus }: EnablementCardProps) 
         </p>
 
         {/* Actions */}
-        <AdminOnly>
-          <div className="flex items-center gap-2 border-t border-border pt-3">
-            {/* Start / Stop */}
-            {running ? (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => stopMut.mutate()}
-                disabled={isBusy}
-                className="h-7 gap-1 px-2 text-xs"
-              >
-                <Square className="h-3 w-3" />
-                Stop
-              </Button>
-            ) : (
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => startMut.mutate()}
-                disabled={isBusy}
-                className="h-7 gap-1 px-2 text-xs"
-              >
-                <Play className="h-3 w-3" />
-                Start
-              </Button>
-            )}
+        <div className="flex items-center gap-2 border-t border-border pt-3">
+          {/* Start / Stop */}
+          {running ? (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => stopMut.mutate()}
+              disabled={isBusy}
+              className="h-7 gap-1 px-2 text-xs"
+            >
+              <Square className="h-3 w-3" />
+              Stop
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => startMut.mutate()}
+              disabled={isBusy}
+              className="h-7 gap-1 px-2 text-xs"
+            >
+              <Play className="h-3 w-3" />
+              Start
+            </Button>
+          )}
 
+          <AdminOnly>
             <Button
               size="sm"
               variant="ghost"
@@ -201,8 +201,8 @@ export function EnablementCard({ enablement, liveStatus }: EnablementCardProps) 
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-          </div>
-        </AdminOnly>
+          </AdminOnly>
+        </div>
       </CardContent>
     </Card>
   );
