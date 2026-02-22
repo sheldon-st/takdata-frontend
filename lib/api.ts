@@ -23,6 +23,7 @@ async function request<T>(
   options?: RequestInit,
 ): Promise<T> {
   const res = await fetch(`${BASE_URL}${path}`, {
+    credentials: "include",
     headers: { "Content-Type": "application/json", ...options?.headers },
     ...options,
   });
@@ -78,6 +79,7 @@ export const uploadCert = (file: File) => {
   form.append("file", file);
   return fetch(`${BASE_URL}/api/v1/tak/certs`, {
     method: "POST",
+    credentials: "include",
     body: form,
   }).then(async (res) => {
     if (!res.ok) {
@@ -168,6 +170,7 @@ export const uploadPackage = (file: File) => {
   form.append("file", file);
   return fetch(`${BASE_URL}/api/v1/packages`, {
     method: "POST",
+    credentials: "include",
     body: form,
   }).then(async (res) => {
     if (!res.ok) {
