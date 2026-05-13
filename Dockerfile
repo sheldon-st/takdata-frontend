@@ -20,8 +20,10 @@ RUN npm install -g pnpm
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# NEXT_PUBLIC_* vars are inlined at build time — pass the production URL here.
-ARG NEXT_PUBLIC_API_BASE_URL=https://api.data.opengeo.space
+# NEXT_PUBLIC_* vars are inlined at build time.
+# For single-host Traefik path-split deployments, set this to
+# https://data.opengeo.space (or leave unset to use same-origin in runtime code).
+ARG NEXT_PUBLIC_API_BASE_URL=https://data.opengeo.space
 ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production

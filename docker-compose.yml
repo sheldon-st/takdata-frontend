@@ -1,5 +1,7 @@
 # Production deployment — uses pre-built images from GitHub Container Registry.
-# External networks (caddy, takdata) must be created before running — see DEPLOY.md.
+# Traefik routes both services behind data.opengeo.space:
+#   frontend: Host(`data.opengeo.space`)
+#   backend:  Host(`data.opengeo.space`) && PathPrefix(`/api`)
 # Run: docker compose pull && docker compose up -d
 
 services:
@@ -13,20 +15,30 @@ services:
       - DATA_DIR=/app/data
       - CORS_ORIGINS=${CORS_ORIGINS:-["https://data.opengeo.space"]}
     networks:
-      - caddy
-      - takdata
+      - dokploy-network
     labels:
-      caddy: ${API_DOMAIN:-api.data.opengeo.space}
-      caddy.reverse_proxy: "{{upstreams 8000}}"
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.takdata-api.rule=Host(`data.opengeo.space`) && PathPrefix(`/api`)
+      - traefik.http.routers.takdata-api.entrypoints=websecure
+      - traefik.http.routers.takdata-api.tls.certresolver=letsencrypt
+      - traefik.http.routers.takdata-api.priority=100
+      - traefik.http.services.takdata-api.loadbalancer.server.port=8000
+      - traefik.http.routers.takdata-api.middlewares=authentik-fwd@docker
 
   frontend:
     image: ghcr.io/sheldon-st/takdata-frontend:latest
     restart: unless-stopped
     networks:
-      - caddy
+      - dokploy-network
     labels:
-      caddy: ${DOMAIN:-data.opengeo.space}
-      caddy.reverse_proxy: "{{upstreams 3000}}"
+      - traefik.enable=true
+      - traefik.docker.network=dokploy-network
+      - traefik.http.routers.takdata-ui.rule=Host(`data.opengeo.space`)
+      - traefik.http.routers.takdata-ui.entrypoints=websecure
+      - traefik.http.routers.takdata-ui.tls.certresolver=letsencrypt
+      - traefik.http.services.takdata-ui.loadbalancer.server.port=3000
+      - traefik.http.routers.takdata-ui.middlewares=authentik-fwd@docker
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000"]
       interval: 30s
@@ -40,10 +52,5 @@ volumes:
   tak-data:
 
 networks:
-  # Both networks must be created externally before running:
-  #   docker network create caddy
-  #   docker network create takdata
-  caddy:
-    external: true
-  takdata:
+  dokploy-network:
     external: true

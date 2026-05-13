@@ -54,8 +54,9 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           # NEXT_PUBLIC_API_BASE_URL is baked in at build time.
+          # Single-host Traefik deployments route API via /api on data.opengeo.space.
           build-args: |
-            NEXT_PUBLIC_API_BASE_URL=https://api.data.opengeo.space
+            NEXT_PUBLIC_API_BASE_URL=https://data.opengeo.space
           cache-from: type=gha
           cache-to: type=gha,mode=max
 

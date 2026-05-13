@@ -3,10 +3,15 @@
 import { useEffect, useRef, useCallback } from "react";
 import type { WsStatusMessage } from "@/lib/types";
 
-const BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000"
-).replace(/\/$/, "").replace(/^http/, "ws");
-const WS_URL = `${BASE_URL}/api/v1/ws/status`;
+const CONFIGURED_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "");
+
+function getWsUrl() {
+  if (CONFIGURED_BASE_URL) {
+    return `${CONFIGURED_BASE_URL.replace(/^http/, "ws")}/api/v1/ws/status`;
+  }
+  const scheme = window.location.protocol === "https:" ? "wss" : "ws";
+  return `${scheme}://${window.location.host}/api/v1/ws/status`;
+}
 
 const MIN_RECONNECT_MS = 1000;
 const MAX_RECONNECT_MS = 30000;
@@ -33,7 +38,7 @@ export function useWebSocket({ onMessage, onOpen, onClose }: UseWebSocketOptions
   const connect = useCallback(() => {
     if (!isMounted.current) return;
 
-    const ws = new WebSocket(WS_URL);
+    const ws = new WebSocket(getWsUrl());
     wsRef.current = ws;
 
     ws.onopen = () => {

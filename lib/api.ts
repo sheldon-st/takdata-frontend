@@ -15,8 +15,9 @@ import type {
   PackageResponse,
 } from "./types";
 
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ?? "http://localhost:8000";
+// In production behind Traefik/Dokploy, leave NEXT_PUBLIC_API_BASE_URL unset
+// to use same-origin requests (data.opengeo.space + /api path split).
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ?? "";
 
 async function request<T>(
   path: string,

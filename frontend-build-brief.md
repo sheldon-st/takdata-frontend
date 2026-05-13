@@ -215,7 +215,11 @@ The WebSocket data is **read-only live status**. All mutations (start, stop, con
 
 ## API base URL
 
-Use an environment variable:   (default `http://localhost:8000`).
+Use `NEXT_PUBLIC_API_BASE_URL`.
+
+- Local dev default: `http://localhost:8000`
+- Production (single-host Traefik path split): `https://data.opengeo.space`
+- If omitted in production, frontend code can use same-origin requests.
 
 WebSocket URL: replace `http` → `ws` / `https` → `wss`.
 
