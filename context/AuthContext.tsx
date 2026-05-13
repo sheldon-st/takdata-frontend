@@ -8,8 +8,7 @@ import type { User } from "@/lib/types";
 const LOGOUT_URL =
   "https://auth.opengeo.space/application/o/tak-manager/end-session/";
 
-const SIGNIN_URL =
-  "https://auth.opengeo.space/outpost.goauthentik.io/start?rd=https%3A%2F%2Fdata.opengeo.space";
+const SIGNIN_URL = "https://auth.opengeo.space/if/user/";
 
 const AuthContext = createContext<User | null>(null);
 
