@@ -8,6 +8,10 @@ import type { User } from "@/lib/types";
 const LOGOUT_URL =
   "https://auth.opengeo.space/application/o/tak-manager/end-session/";
 
+// Redirect back to the app root — Traefik forward auth will intercept and
+// send to Authentik login, then return here after successful auth.
+const SIGNIN_URL = "https://data.opengeo.space";
+
 const AuthContext = createContext<User | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -33,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="space-y-2 text-center">
           <p className="text-sm text-muted-foreground">Session expired.</p>
-          <a href={LOGOUT_URL} className="text-sm underline underline-offset-4">
+          <a href={SIGNIN_URL} className="text-sm underline underline-offset-4">
             Sign in
           </a>
         </div>
