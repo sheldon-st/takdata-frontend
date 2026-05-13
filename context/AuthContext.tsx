@@ -5,11 +5,6 @@ import { useQuery } from "@tanstack/react-query";
 import { getMe } from "@/lib/api";
 import type { User } from "@/lib/types";
 
-const LOGOUT_URL =
-  "https://auth.opengeo.space/application/o/tak-manager/end-session/";
-
-const SIGNIN_URL = "https://auth.opengeo.space/if/user/";
-
 const AuthContext = createContext<User | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -28,14 +23,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     );
   }
 
-  // 401 means the Authentik session is gone — show a sign-in prompt instead
-  // of looping. Traefik will handle the redirect when the user clicks through.
+  // 401 means the Authentik session is gone — route users back through the app
+  // domain so forward-auth can send them to the right login flow.
   if ((error as any)?.status === 401) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="space-y-2 text-center">
           <p className="text-sm text-muted-foreground">Session expired.</p>
-          <a href={SIGNIN_URL} className="text-sm underline underline-offset-4">
+          <a href="/" className="text-sm underline underline-offset-4">
             Sign in
           </a>
         </div>
