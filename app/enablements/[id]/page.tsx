@@ -66,6 +66,7 @@ const generalSchema = z.object({
   updates_per_second: z.coerce.number().min(0.01).nullable(),
   features_per_update: z.coerce.number().int().min(1).nullable(),
   selection_strategy: z.enum(["round_robin", "random", "zipf"]).nullable(),
+  seed_initial: z.boolean(),
 });
 
 type GeneralFormValues = z.infer<typeof generalSchema>;
@@ -124,6 +125,7 @@ export default function EnablementDetailPage() {
           updates_per_second: enablement.updates_per_second,
           features_per_update: enablement.features_per_update,
           selection_strategy: enablement.selection_strategy,
+          seed_initial: enablement.seed_initial ?? false,
         }
       : undefined,
   });

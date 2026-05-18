@@ -76,6 +76,7 @@ export interface EnablementResponse {
   updates_per_second: number | null;
   features_per_update: number | null;
   selection_strategy: "round_robin" | "random" | "zipf" | null;
+  seed_initial: boolean;
   running: boolean;
   created_at: string;
   updated_at: string;
@@ -98,6 +99,7 @@ export interface EnablementCreate {
   updates_per_second?: number | null;
   features_per_update?: number | null;
   selection_strategy?: "round_robin" | "random" | "zipf" | null;
+  seed_initial?: boolean | null;
 }
 
 export interface EnablementUpdate {
@@ -115,6 +117,7 @@ export interface EnablementUpdate {
   updates_per_second?: number | null;
   features_per_update?: number | null;
   selection_strategy?: "round_robin" | "random" | "zipf" | null;
+  seed_initial?: boolean | null;
 }
 
 export interface SourceCreate {

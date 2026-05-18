@@ -51,6 +51,7 @@ const schema = z.object({
   updates_per_second: z.coerce.number().min(0.01).nullable(),
   features_per_update: z.coerce.number().int().min(1).nullable(),
   selection_strategy: z.enum(["round_robin", "random", "zipf"]).nullable(),
+  seed_initial: z.boolean(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -94,6 +95,7 @@ export function NewEnablementDialog({ onCreated }: NewEnablementDialogProps) {
       updates_per_second: null,
       features_per_update: null,
       selection_strategy: null,
+      seed_initial: false,
     },
   });
 
@@ -141,6 +143,7 @@ export function NewEnablementDialog({ onCreated }: NewEnablementDialogProps) {
       setValue("updates_per_second", 10);
       setValue("features_per_update", 100);
       setValue("selection_strategy", "round_robin");
+      setValue("seed_initial", true);
     }
   }, [selectedType, setValue]);
 

@@ -79,7 +79,7 @@ export function SyntheticWorkloadFields({
             id="syn-U"
             type="number"
             min={0.01}
-            step={0.1}
+            step="any"
             disabled={disabled}
             {...register("updates_per_second")}
           />
@@ -160,6 +160,23 @@ export function SyntheticWorkloadFields({
         <p className="text-xs text-muted-foreground">
           Should be ≥ refresh interval, else TAK clients drop features between updates.
         </p>
+      </div>
+
+      <Separator />
+
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium">Seed Initial Batch</p>
+          <p className="text-xs text-muted-foreground">
+            Emit all N features once at startup before steady-state loop.
+            Primes the system; large N may saturate tx_queue briefly.
+          </p>
+        </div>
+        <Switch
+          checked={Boolean(watch("seed_initial"))}
+          onCheckedChange={(v) => setValue("seed_initial", v, { shouldDirty: true })}
+          disabled={disabled}
+        />
       </div>
 
       <Separator />
