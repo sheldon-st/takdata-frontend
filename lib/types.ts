@@ -3,6 +3,7 @@
 export interface User {
   username: string;
   role: "admin" | "viewer";
+  auth_enabled: boolean;
 }
 
 export interface CertInfo {

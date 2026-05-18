@@ -50,3 +50,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export const useAuth = () => useContext(AuthContext);
 export const useIsAdmin = () => useAuth()?.role === "admin";
+// Default true so that, before /me resolves or when it fails, the UI assumes
+// auth is on (safer — hides nothing it shouldn't). Backend is source of truth.
+export const useAuthEnabled = () => useAuth()?.auth_enabled ?? true;

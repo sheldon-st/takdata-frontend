@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useWsStatus } from "@/components/ws-context";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth, useAuthEnabled } from "@/context/AuthContext";
 import { ModeToggle } from "./theme-toggle";
 
 const navItems = [
@@ -25,6 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { status } = useWsStatus();
   const user = useAuth();
+  const authEnabled = useAuthEnabled();
 
   const takConnected = status?.tak_connected ?? false;
 
@@ -85,12 +86,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <span className="truncate text-xs text-sidebar-foreground/70">
               {user?.username}
             </span>
-            <a
-              href="https://auth.opengeo.space/application/o/tak-manager/end-session/"
-              className="shrink-0 text-xs text-sidebar-foreground/70 hover:text-sidebar-foreground"
-            >
-              Sign out
-            </a>
+            {authEnabled && (
+              <a
+                href="https://auth.opengeo.space/application/o/tak-manager/end-session/"
+                className="shrink-0 text-xs text-sidebar-foreground/70 hover:text-sidebar-foreground"
+              >
+                Sign out
+              </a>
+            )}
           </div>
         </div>
       </aside>
