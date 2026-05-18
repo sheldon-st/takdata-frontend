@@ -72,8 +72,10 @@ export interface EnablementResponse {
   geo_filter_max_lat: number | null;
   geo_filter_min_lon: number | null;
   geo_filter_max_lon: number | null;
-  entity_count: number | null;
-  target_rate_hz: number | null;
+  feature_count: number | null;
+  updates_per_second: number | null;
+  features_per_update: number | null;
+  selection_strategy: "round_robin" | "random" | "zipf" | null;
   running: boolean;
   created_at: string;
   updated_at: string;
@@ -92,8 +94,10 @@ export interface EnablementCreate {
   geo_filter_max_lat?: number | null;
   geo_filter_min_lon?: number | null;
   geo_filter_max_lon?: number | null;
-  entity_count?: number | null;
-  target_rate_hz?: number | null;
+  feature_count?: number | null;
+  updates_per_second?: number | null;
+  features_per_update?: number | null;
+  selection_strategy?: "round_robin" | "random" | "zipf" | null;
 }
 
 export interface EnablementUpdate {
@@ -107,8 +111,10 @@ export interface EnablementUpdate {
   geo_filter_max_lat?: number | null;
   geo_filter_min_lon?: number | null;
   geo_filter_max_lon?: number | null;
-  entity_count?: number | null;
-  target_rate_hz?: number | null;
+  feature_count?: number | null;
+  updates_per_second?: number | null;
+  features_per_update?: number | null;
+  selection_strategy?: "round_robin" | "random" | "zipf" | null;
 }
 
 export interface SourceCreate {
