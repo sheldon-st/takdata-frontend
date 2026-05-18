@@ -72,6 +72,8 @@ export interface EnablementResponse {
   geo_filter_max_lat: number | null;
   geo_filter_min_lon: number | null;
   geo_filter_max_lon: number | null;
+  entity_count: number | null;
+  target_rate_hz: number | null;
   running: boolean;
   created_at: string;
   updated_at: string;
@@ -90,6 +92,8 @@ export interface EnablementCreate {
   geo_filter_max_lat?: number | null;
   geo_filter_min_lon?: number | null;
   geo_filter_max_lon?: number | null;
+  entity_count?: number | null;
+  target_rate_hz?: number | null;
 }
 
 export interface EnablementUpdate {
@@ -103,6 +107,8 @@ export interface EnablementUpdate {
   geo_filter_max_lat?: number | null;
   geo_filter_min_lon?: number | null;
   geo_filter_max_lon?: number | null;
+  entity_count?: number | null;
+  target_rate_hz?: number | null;
 }
 
 export interface SourceCreate {

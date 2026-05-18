@@ -61,6 +61,8 @@ const generalSchema = z.object({
   geo_filter_max_lat: z.number().nullable(),
   geo_filter_min_lon: z.number().nullable(),
   geo_filter_max_lon: z.number().nullable(),
+  entity_count: z.coerce.number().int().min(1).nullable(),
+  target_rate_hz: z.coerce.number().min(0.1).nullable(),
 });
 
 type GeneralFormValues = z.infer<typeof generalSchema>;
@@ -115,6 +117,8 @@ export default function EnablementDetailPage() {
           geo_filter_max_lat: enablement.geo_filter_max_lat,
           geo_filter_min_lon: enablement.geo_filter_min_lon,
           geo_filter_max_lon: enablement.geo_filter_max_lon,
+          entity_count: enablement.entity_count,
+          target_rate_hz: enablement.target_rate_hz,
         }
       : undefined,
   });
@@ -279,12 +283,14 @@ export default function EnablementDetailPage() {
       <Tabs defaultValue="general">
         <TabsList>
           <TabsTrigger value="general">General</TabsTrigger>
-          <TabsTrigger value="sources">
-            Sources
-            <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-[10px]">
-              {enablement.sources.length}
-            </Badge>
-          </TabsTrigger>
+          {enablement.type_id !== "synthetic" && (
+            <TabsTrigger value="sources">
+              Sources
+              <Badge variant="secondary" className="ml-1.5 px-1.5 py-0 text-[10px]">
+                {enablement.sources.length}
+              </Badge>
+            </TabsTrigger>
+          )}
           <TabsTrigger value="status">Live Status</TabsTrigger>
         </TabsList>
 
@@ -378,6 +384,76 @@ export default function EnablementDetailPage() {
                       <p className="text-sm font-medium">Geographic Filter</p>
                       <p className="text-xs text-muted-foreground">
                         Only process aircraft inside a bounding box
+                      </p>
+                    </div>
+                    <Switch
+                      checked={geoFilterEnabled}
+                      onCheckedChange={handleGeoFilterToggle}
+                      disabled={!isAdmin}
+                    />
+                  </div>
+
+                  {geoFilterEnabled && (
+                    <GeoFilterMap
+                      value={geoFilterValue}
+                      onChange={handleGeoFilterChange}
+                    />
+                  )}
+                </div>
+              </>
+            )}
+
+            {enablement.type_id === "synthetic" && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="d-entity-count">Unique Entities</Label>
+                    <Input
+                      id="d-entity-count"
+                      type="number"
+                      min={1}
+                      disabled={!isAdmin}
+                      {...register("entity_count")}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Number of distinct UIDs to emit
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="d-target-rate">Target Rate (updates/sec)</Label>
+                    <Input
+                      id="d-target-rate"
+                      type="number"
+                      min={0.1}
+                      step={0.1}
+                      disabled={!isAdmin}
+                      {...register("target_rate_hz")}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Aggregate emit rate across all entities. Save while running to hot-reload.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="d-stale">CoT Stale Time (seconds)</Label>
+                  <Input
+                    id="d-stale"
+                    type="number"
+                    min={1}
+                    disabled={!isAdmin}
+                    {...register("cot_stale")}
+                  />
+                </div>
+
+                <Separator />
+
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">Spawn Bounding Box</p>
+                      <p className="text-xs text-muted-foreground">
+                        Entities seeded uniformly inside this box. Defaults to CONUS if unset.
                       </p>
                     </div>
                     <Switch

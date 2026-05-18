@@ -46,6 +46,8 @@ const schema = z.object({
   geo_filter_max_lat: z.number().nullable(),
   geo_filter_min_lon: z.number().nullable(),
   geo_filter_max_lon: z.number().nullable(),
+  entity_count: z.coerce.number().int().min(1).nullable(),
+  target_rate_hz: z.coerce.number().min(0.1).nullable(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -85,6 +87,8 @@ export function NewEnablementDialog({ onCreated }: NewEnablementDialogProps) {
       geo_filter_max_lat: null,
       geo_filter_min_lon: null,
       geo_filter_max_lon: null,
+      entity_count: null,
+      target_rate_hz: null,
     },
   });
 
@@ -112,12 +116,20 @@ export function NewEnablementDialog({ onCreated }: NewEnablementDialogProps) {
     }
   };
 
-  // Reset uid_key default to match the selected enablement type
+  // Reset uid_key default + synthetic defaults to match the selected enablement type
   useEffect(() => {
     if (selectedType?.type_id === "ais") {
       setValue("uid_key", "MMSI");
+      setValue("entity_count", null);
+      setValue("target_rate_hz", null);
     } else if (selectedType?.type_id === "adsb") {
       setValue("uid_key", "ICAO");
+      setValue("entity_count", null);
+      setValue("target_rate_hz", null);
+    } else if (selectedType?.type_id === "synthetic") {
+      setValue("uid_key", "SYN");
+      setValue("entity_count", 100);
+      setValue("target_rate_hz", 10);
     }
   }, [selectedType, setValue]);
 
@@ -151,7 +163,10 @@ export function NewEnablementDialog({ onCreated }: NewEnablementDialogProps) {
     if (!enabled) handleGeoFilterChange(null);
   };
 
-  const showMap = selectedType?.type_id === "adsb" || selectedType?.type_id === "ais";
+  const showMap =
+    selectedType?.type_id === "adsb" ||
+    selectedType?.type_id === "ais" ||
+    selectedType?.type_id === "synthetic";
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -298,6 +313,73 @@ export function NewEnablementDialog({ onCreated }: NewEnablementDialogProps) {
                       <p className="text-sm font-medium">Geographic Filter</p>
                       <p className="text-xs text-muted-foreground">
                         Only process aircraft inside a bounding box
+                      </p>
+                    </div>
+                    <Switch
+                      checked={geoFilterEnabled}
+                      onCheckedChange={handleGeoFilterToggle}
+                    />
+                  </div>
+
+                  {geoFilterEnabled && (
+                    <GeoFilterMap
+                      value={geoFilterValue}
+                      onChange={handleGeoFilterChange}
+                    />
+                  )}
+                </div>
+              </>
+            )}
+
+            {selectedType.type_id === "synthetic" && (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="en-entity-count">Unique Entities</Label>
+                    <Input
+                      id="en-entity-count"
+                      type="number"
+                      min={1}
+                      {...register("entity_count")}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Number of distinct UIDs to emit
+                    </p>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label htmlFor="en-target-rate">Target Rate (updates/sec)</Label>
+                    <Input
+                      id="en-target-rate"
+                      type="number"
+                      min={0.1}
+                      step={0.1}
+                      {...register("target_rate_hz")}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Aggregate emit rate across all entities
+                    </p>
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <Label htmlFor="en-cot-stale">CoT Stale Time (seconds)</Label>
+                  <Input
+                    id="en-cot-stale"
+                    type="number"
+                    min={1}
+                    {...register("cot_stale")}
+                  />
+                </div>
+
+                <Separator />
+
+                {/* Spawn bbox */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">Spawn Bounding Box</p>
+                      <p className="text-xs text-muted-foreground">
+                        Entities are seeded uniformly inside this box. Defaults to CONUS if unset.
                       </p>
                     </div>
                     <Switch
