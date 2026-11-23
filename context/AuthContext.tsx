@@ -2,7 +2,7 @@
 
 import { createContext, useContext } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getMe } from "@/lib/api";
+import { getMe, isApiError } from "@/lib/api";
 import type { User } from "@/lib/types";
 
 const AuthContext = createContext<User | null>(null);
@@ -25,14 +25,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // 401 means the Authentik session is gone — route users back through the app
   // domain so forward-auth can send them to the right login flow.
-  if ((error as any)?.status === 401) {
+  if (isApiError(error, 401)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="space-y-2 text-center">
           <p className="text-sm text-muted-foreground">Session expired.</p>
-          <a href="/" className="text-sm underline underline-offset-4">
+          {/* Full reload, not client-side navigation: the request has to pass
+              through the proxy so forward-auth can redirect to the login flow. */}
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="text-sm underline underline-offset-4"
+          >
             Sign in
-          </a>
+          </button>
         </div>
       </div>
     );

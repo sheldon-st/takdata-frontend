@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/context/AuthContext";
+import { isApiError } from "@/lib/api";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -16,15 +17,15 @@ export function Providers({ children }: { children: React.ReactNode }) {
         defaultOptions: {
           queries: {
             staleTime: 30_000,
-            retry: (count, error: any) => {
-              if (error?.status === 401 || error?.status === 403) return false;
+            retry: (count, error) => {
+              if (isApiError(error, 401) || isApiError(error, 403)) return false;
               return count < 2;
             },
           },
           mutations: {
-            onError: (error: any) => {
-              if (error?.status === 401) window.location.reload();
-              if (error?.status === 403) toast.error("Admin access required");
+            onError: (error) => {
+              if (isApiError(error, 401)) window.location.reload();
+              if (isApiError(error, 403)) toast.error("Admin access required");
             },
           },
         },
