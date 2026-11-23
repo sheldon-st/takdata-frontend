@@ -49,7 +49,7 @@ export function TakConfigForm() {
     setValue,
     control,
     formState: { errors, isDirty },
-  } = useForm<FormValues>({
+  } = useForm<z.input<typeof schema>, unknown, FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       cot_url: "tls://localhost:8089",

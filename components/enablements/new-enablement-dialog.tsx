@@ -72,7 +72,7 @@ export function NewEnablementDialog({ onCreated }: NewEnablementDialogProps) {
     enabled: open,
   });
 
-  const form = useForm<FormValues>({
+  const form = useForm<z.input<typeof schema>, unknown, FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",
