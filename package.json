@@ -2,11 +2,21 @@
   "name": "takdata-frontend",
   "version": "0.1.0",
   "private": true,
+  "description": "Web UI for TAK Manager: configure ADS-B, AIS and synthetic CoT feeds into a TAK Server",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sheldon-st/takdata-frontend.git"
+  },
+  "packageManager": "pnpm@11.21.0",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
