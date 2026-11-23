@@ -13,7 +13,7 @@ import type { SourceResponse, SourceCreate, KnownSource } from "@/lib/types";
 const schema = z
   .object({
     name: z.string().min(1, "Required"),
-    base_url: z.string().url("Must be a valid URL"),
+    base_url: z.url("Must be a valid URL"),
     endpoint: z.enum(["geo", "point", "mil"]),
     sleep_interval: z.coerce.number().min(0.1),
     lat: z.coerce.number().nullable(),
@@ -62,7 +62,7 @@ export function SourceForm({
     setValue,
     control,
     formState: { errors },
-  } = useForm<SourceFormValues>({
+  } = useForm<z.input<typeof schema>, unknown, SourceFormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",

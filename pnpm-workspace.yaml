@@ -2,3 +2,10 @@ allowBuilds:
   msw: true
   sharp: true
   unrs-resolver: true
+
+# Patched transitive versions for open advisories (fast-uri via ajv,
+# browserslist via next's bundled babel). Drop once upstream ranges catch up.
+overrides:
+  fast-uri: ">=3.1.9"
+  browserslist: ">=4.28.7"
+  baseline-browser-mapping: ">=2.11.0"

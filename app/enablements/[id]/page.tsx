@@ -101,7 +101,7 @@ export default function EnablementDetailPage() {
   const liveStatus = wsStatus?.enablements.find((e) => e.id === enablementId);
   const running = liveStatus?.running ?? enablement?.running ?? false;
 
-  const form = useForm<GeneralFormValues>({
+  const form = useForm<z.input<typeof generalSchema>, unknown, GeneralFormValues>({
     resolver: zodResolver(generalSchema),
     values: enablement
       ? {
