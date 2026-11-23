@@ -19,6 +19,7 @@ const schema = z
     lat: z.coerce.number().nullable(),
     lon: z.coerce.number().nullable(),
     distance: z.coerce.number().nullable(),
+    api_key: z.string(),
     enabled: z.boolean(),
   })
   .refine(
@@ -71,6 +72,7 @@ export function SourceForm({
       lat: null,
       lon: null,
       distance: 25,
+      api_key: "",
       enabled: true,
     },
   });
@@ -85,6 +87,7 @@ export function SourceForm({
         lat: defaultValues.lat ?? null,
         lon: defaultValues.lon ?? null,
         distance: defaultValues.distance ?? 25,
+        api_key: "",
         enabled: "enabled" in defaultValues ? (defaultValues.enabled ?? true) : true,
       });
     }
@@ -92,6 +95,11 @@ export function SourceForm({
 
   const [endpoint, enabled] = useWatch({ control, name: ["endpoint", "enabled"] });
   const needsGeo = endpoint === "geo" || endpoint === "point";
+  const hasSavedKey = Boolean(defaultValues && "has_api_key" in defaultValues && defaultValues.has_api_key);
+  const showApiKey =
+    typeId === "ais" ||
+    hasSavedKey ||
+    Boolean(defaultValues && "requires_api_key" in defaultValues && defaultValues.requires_api_key);
   const endpointLabels = typeId && ENDPOINT_LABELS[typeId] ? ENDPOINT_LABELS[typeId] : { geo: "geo", point: "point", mil: "mil" };
 
   const handleFormSubmit = (values: SourceFormValues) => {
@@ -103,6 +111,8 @@ export function SourceForm({
       lat: needsGeo ? values.lat : null,
       lon: needsGeo ? values.lon : null,
       distance: needsGeo ? values.distance : null,
+      // Blank means "keep whatever is stored"; never send an empty string by accident.
+      ...(values.api_key.trim() ? { api_key: values.api_key.trim() } : {}),
       enabled: values.enabled,
     });
   };
@@ -141,6 +151,24 @@ export function SourceForm({
           <p className="text-xs text-destructive">{errors.base_url.message}</p>
         )}
       </div>
+
+      {showApiKey && (
+        <div className="space-y-1.5">
+          <Label htmlFor="src-api-key">API Key</Label>
+          <Input
+            id="src-api-key"
+            type="password"
+            autoComplete="off"
+            placeholder={hasSavedKey ? "Saved — leave blank to keep" : "Paste API key"}
+            {...register("api_key")}
+          />
+          <p className="text-xs text-muted-foreground">
+            Stored server-side and never shown again.
+            {typeId === "ais" &&
+              " Leave blank to use the server's AISSTREAM_API_KEY. Free keys at aisstream.io."}
+          </p>
+        </div>
+      )}
 
       {/* Endpoint type selector */}
       <div className="space-y-1.5">

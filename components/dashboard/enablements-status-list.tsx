@@ -109,6 +109,9 @@ export function EnablementsStatusList() {
                       {e.running && (
                         <span className="text-xs text-muted-foreground tabular-nums">
                           {e.active_items} active · {e.events_sent} sent
+                          {e.events_dropped > 0 && (
+                            <span className="text-destructive"> · {e.events_dropped} dropped</span>
+                          )}
                         </span>
                       )}
                     </div>

@@ -27,9 +27,10 @@ import type { SourceResponse, SourceCreate } from "@/lib/types";
 interface SourceRowProps {
   source: SourceResponse;
   enablementId: number;
+  typeId?: string;
 }
 
-export function SourceRow({ source, enablementId }: SourceRowProps) {
+export function SourceRow({ source, enablementId, typeId }: SourceRowProps) {
   const [editing, setEditing] = useState(false);
   const queryClient = useQueryClient();
 
@@ -150,6 +151,7 @@ export function SourceRow({ source, enablementId }: SourceRowProps) {
               onCancel={() => setEditing(false)}
               isPending={updateMut.isPending}
               submitLabel="Update Source"
+              typeId={typeId}
             />
           </div>
         )}

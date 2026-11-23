@@ -665,7 +665,12 @@ export default function EnablementDetailPage() {
             ) : (
               <div className="rounded-md border border-border px-4">
                 {enablement.sources.map((s) => (
-                  <SourceRow key={s.id} source={s} enablementId={enablementId} />
+                  <SourceRow
+                    key={s.id}
+                    source={s}
+                    enablementId={enablementId}
+                    typeId={enablement.type_id}
+                  />
                 ))}
               </div>
             )}
@@ -715,6 +720,11 @@ export default function EnablementDetailPage() {
                     <p className="mt-1 text-2xl font-semibold tabular-nums">
                       {liveStatus.events_sent.toLocaleString()}
                     </p>
+                    {liveStatus.events_dropped > 0 && (
+                      <p className="mt-0.5 text-xs text-destructive tabular-nums">
+                        {liveStatus.events_dropped.toLocaleString()} dropped
+                      </p>
+                    )}
                   </CardContent>
                 </Card>
                 <Card>

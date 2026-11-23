@@ -46,16 +46,21 @@ export interface EnablementTypeInfo {
   description: string;
 }
 
+/** Query mode. For AIS: geo/point = area around lat/lon, mil = global. */
+export type SourceEndpoint = "geo" | "point" | "mil";
+
 export interface SourceResponse {
   id: number;
   enablement_id: number;
   name: string;
   base_url: string;
-  endpoint: "geo" | "point" | "mil";
+  endpoint: SourceEndpoint;
   sleep_interval: number;
   lat: number | null;
   lon: number | null;
   distance: number | null;
+  /** True when a credential is stored; the key itself is never returned. */
+  has_api_key: boolean;
   enabled: boolean;
   created_at: string;
 }
@@ -124,22 +129,25 @@ export interface EnablementUpdate {
 export interface SourceCreate {
   name: string;
   base_url: string;
-  endpoint?: "geo" | "point" | "mil";
+  endpoint?: SourceEndpoint;
   sleep_interval?: number;
   lat?: number | null;
   lon?: number | null;
   distance?: number | null;
+  /** Write-only. Omit to keep the stored key; "" clears it. */
+  api_key?: string;
   enabled?: boolean;
 }
 
 export interface SourceUpdate {
   name?: string | null;
   base_url?: string | null;
-  endpoint?: "geo" | "point" | "mil" | null;
+  endpoint?: SourceEndpoint | null;
   sleep_interval?: number | null;
   lat?: number | null;
   lon?: number | null;
   distance?: number | null;
+  api_key?: string;
   enabled?: boolean | null;
 }
 
@@ -157,6 +165,8 @@ export interface EnablementStatusItem {
   type_id: string;
   running: boolean;
   events_sent: number;
+  /** Events discarded because the TX queue was full (TAK link down or slow). */
+  events_dropped: number;
   last_poll_time: string | null;
   last_error: string | null;
   active_items: number;
@@ -198,9 +208,13 @@ export interface PackageResponse {
 
 // Known source template (returned by GET /enablements/:id/known-sources)
 export interface KnownSource {
+  id?: string;
   name: string;
   base_url: string;
-  endpoint: "geo" | "point" | "mil";
+  endpoint: SourceEndpoint;
+  description?: string;
+  requires_location?: boolean;
+  requires_api_key?: boolean;
   sleep_interval?: number;
   lat?: number | null;
   lon?: number | null;
