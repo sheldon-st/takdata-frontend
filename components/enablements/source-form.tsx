@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -58,8 +58,8 @@ export function SourceForm({
     register,
     handleSubmit,
     reset,
-    watch,
     setValue,
+    control,
     formState: { errors },
   } = useForm<SourceFormValues>({
     resolver: zodResolver(schema),
@@ -90,9 +90,8 @@ export function SourceForm({
     }
   }, [defaultValues, reset]);
 
-  const endpoint = watch("endpoint");
+  const [endpoint, enabled] = useWatch({ control, name: ["endpoint", "enabled"] });
   const needsGeo = endpoint === "geo" || endpoint === "point";
-  const enabled = watch("enabled");
   const endpointLabels = typeId && ENDPOINT_LABELS[typeId] ? ENDPOINT_LABELS[typeId] : { geo: "geo", point: "point", mil: "mil" };
 
   const handleFormSubmit = (values: SourceFormValues) => {

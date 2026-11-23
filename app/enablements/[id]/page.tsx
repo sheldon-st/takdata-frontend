@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -101,14 +101,7 @@ export default function EnablementDetailPage() {
   const liveStatus = wsStatus?.enablements.find((e) => e.id === enablementId);
   const running = liveStatus?.running ?? enablement?.running ?? false;
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    watch,
-    setValue,
-    formState: { errors, isDirty },
-  } = useForm<GeneralFormValues>({
+  const form = useForm<GeneralFormValues>({
     resolver: zodResolver(generalSchema),
     values: enablement
       ? {
@@ -129,14 +122,22 @@ export default function EnablementDetailPage() {
         }
       : undefined,
   });
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    control,
+    formState: { errors, isDirty },
+  } = form;
 
-  // Sync geoFilterEnabled toggle with loaded enablement data
-  useEffect(() => {
-    if (enablement) {
-      const hasFilter = enablement.geo_filter_min_lat !== null;
-      setGeoFilterEnabled(hasFilter);
-    }
-  }, [enablement]);
+  // Re-sync the geo-filter toggle whenever a fresh enablement arrives from
+  // the server (adjust-state-during-render; avoids a cascading effect).
+  const [syncedEnablement, setSyncedEnablement] = useState(enablement);
+  if (enablement !== syncedEnablement) {
+    setSyncedEnablement(enablement);
+    if (enablement) setGeoFilterEnabled(enablement.geo_filter_min_lat !== null);
+  }
 
   const saveMut = useMutation({
     mutationFn: (v: GeneralFormValues) => putEnablement(enablementId, v),
@@ -173,14 +174,14 @@ export default function EnablementDetailPage() {
     onError: (e: Error) => toast.error(`Add source failed: ${e.message}`),
   });
 
-  const uidKey = watch("uid_key") ?? "ICAO";
+  const uidKey = useWatch({ control, name: "uid_key" }) ?? "ICAO";
 
   // Derive current bbox from form values for the map component
+  const [minLat, maxLat, minLon, maxLon] = useWatch({
+    control,
+    name: ["geo_filter_min_lat", "geo_filter_max_lat", "geo_filter_min_lon", "geo_filter_max_lon"],
+  });
   const geoFilterValue: GeoFilterBbox | null = (() => {
-    const minLat = watch("geo_filter_min_lat");
-    const maxLat = watch("geo_filter_max_lat");
-    const minLon = watch("geo_filter_min_lon");
-    const maxLon = watch("geo_filter_max_lon");
     if (
       minLat !== null && minLat !== undefined &&
       maxLat !== null && maxLat !== undefined &&
@@ -411,16 +412,15 @@ export default function EnablementDetailPage() {
             )}
 
             {enablement.type_id === "synthetic" && (
-              <SyntheticWorkloadFields
-                register={register}
-                watch={watch}
-                setValue={setValue}
-                disabled={!isAdmin}
-                geoFilterEnabled={geoFilterEnabled}
-                onGeoFilterToggle={handleGeoFilterToggle}
-                geoFilterValue={geoFilterValue}
-                onGeoFilterChange={handleGeoFilterChange}
-              />
+              <FormProvider {...form}>
+                <SyntheticWorkloadFields
+                  disabled={!isAdmin}
+                  geoFilterEnabled={geoFilterEnabled}
+                  onGeoFilterToggle={handleGeoFilterToggle}
+                  geoFilterValue={geoFilterValue}
+                  onGeoFilterChange={handleGeoFilterChange}
+                />
+              </FormProvider>
             )}
 
             {enablement.type_id === "ais" && (
