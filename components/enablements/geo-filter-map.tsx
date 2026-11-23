@@ -67,7 +67,9 @@ export default function GeoFilterMap({ value, onChange }: GeoFilterMapProps) {
   const vectorSourceRef = useRef<VectorSource | null>(null);
   // Keep onChange stable in effects
   const onChangeRef = useRef(onChange);
-  onChangeRef.current = onChange;
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
 
   // ── Initialise OL map once ─────────────────────────────────────────────────
   useEffect(() => {

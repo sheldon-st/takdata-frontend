@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import type { WsStatusMessage } from "@/lib/types";
 
 const CONFIGURED_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "");
@@ -22,66 +22,56 @@ interface UseWebSocketOptions {
   onClose?: () => void;
 }
 
+/**
+ * Subscribe to the backend status stream, reconnecting with exponential
+ * backoff (1 s → 30 s). Callbacks may change between renders without
+ * tearing down the socket.
+ */
 export function useWebSocket({ onMessage, onOpen, onClose }: UseWebSocketOptions) {
-  const wsRef = useRef<WebSocket | null>(null);
-  const reconnectDelay = useRef(MIN_RECONNECT_MS);
-  const reconnectTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isMounted = useRef(true);
-
-  const clearTimer = () => {
-    if (reconnectTimer.current) {
-      clearTimeout(reconnectTimer.current);
-      reconnectTimer.current = null;
-    }
-  };
-
-  const connect = useCallback(() => {
-    if (!isMounted.current) return;
-
-    const ws = new WebSocket(getWsUrl());
-    wsRef.current = ws;
-
-    ws.onopen = () => {
-      reconnectDelay.current = MIN_RECONNECT_MS;
-      onOpen?.();
-    };
-
-    ws.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data as string) as WsStatusMessage;
-        onMessage(data);
-      } catch {
-        // ignore malformed frames
-      }
-    };
-
-    ws.onclose = () => {
-      onClose?.();
-      if (!isMounted.current) return;
-      clearTimer();
-      reconnectTimer.current = setTimeout(() => {
-        reconnectDelay.current = Math.min(
-          reconnectDelay.current * 2,
-          MAX_RECONNECT_MS,
-        );
-        connect();
-      }, reconnectDelay.current);
-    };
-
-    ws.onerror = () => {
-      ws.close();
-    };
+  const handlers = useRef({ onMessage, onOpen, onClose });
+  useEffect(() => {
+    handlers.current = { onMessage, onOpen, onClose };
   }, [onMessage, onOpen, onClose]);
 
   useEffect(() => {
-    isMounted.current = true;
-    connect();
-    return () => {
-      isMounted.current = false;
-      clearTimer();
-      wsRef.current?.close();
+    let ws: WebSocket | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let delay = MIN_RECONNECT_MS;
+    let disposed = false;
+
+    const connect = () => {
+      if (disposed) return;
+      ws = new WebSocket(getWsUrl());
+
+      ws.onopen = () => {
+        delay = MIN_RECONNECT_MS;
+        handlers.current.onOpen?.();
+      };
+
+      ws.onmessage = (event) => {
+        try {
+          handlers.current.onMessage(JSON.parse(event.data as string) as WsStatusMessage);
+        } catch {
+          // ignore malformed frames
+        }
+      };
+
+      ws.onclose = () => {
+        handlers.current.onClose?.();
+        if (disposed) return;
+        timer = setTimeout(connect, delay);
+        delay = Math.min(delay * 2, MAX_RECONNECT_MS);
+      };
+
+      ws.onerror = () => ws?.close();
     };
-    // connect is stable via useCallback; eslint-disable below is intentional
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    connect();
+
+    return () => {
+      disposed = true;
+      if (timer) clearTimeout(timer);
+      ws?.close();
+    };
   }, []);
 }
