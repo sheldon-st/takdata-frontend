@@ -3,11 +3,13 @@
 .next
 node_modules
 .pnpm-store
+coverage
+*.tsbuildinfo
+.DS_Store
 
 # env files (secrets must never bake into the image)
 .env
 .env.*
-!.env.example
 
 # dev/docs
 *.md
