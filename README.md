@@ -1,84 +1,121 @@
-# takdata-frontend
+# TAK Manager — Web UI
 
-Web UI for [TAK Manager](../takdata) — configure data enablements, manage TAK Server connections, and watch live status streams.
+[![CI](https://github.com/sheldon-st/takdata-frontend/actions/workflows/ci.yml/badge.svg)](https://github.com/sheldon-st/takdata-frontend/actions/workflows/ci.yml)
+[![Image](https://github.com/sheldon-st/takdata-frontend/actions/workflows/docker-image.yml/badge.svg)](https://github.com/sheldon-st/takdata-frontend/pkgs/container/takdata-frontend)
+![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs)
 
-> For system overview, architecture, auth modes, and deployment, see the primary [**takdata README**](../takdata/README.md).
+Browser UI for [**TAK Manager**](https://github.com/sheldon-st/takdata): configure
+ADS-B, AIS and synthetic data feeds, manage the TAK Server connection and
+client certificates, distribute data packages, and watch live per-feed
+status.
+
+> System architecture, auth modes, the API and deployment are documented in
+> the primary [**takdata README**](https://github.com/sheldon-st/takdata#readme)
+> and [**DEPLOY.md**](https://github.com/sheldon-st/takdata/blob/main/DEPLOY.md).
 
 ---
 
 ## Role in the system
 
-This repo is the **frontend only**. It talks to the FastAPI backend (in [`takdata/`](../takdata)) over:
+This repo is the **frontend only**. It talks to the FastAPI backend over:
 
-- **REST** — `/api/v1/*` for config, lifecycle, certs, packages
-- **WebSocket** — `/api/v1/ws/status` for live per-enablement metrics
+- **REST** `/api/v1/*` for config, lifecycle, certs and packages.
+- **WebSocket** `/api/v1/ws/status` for live per-enablement metrics
+  (events sent and dropped, active tracks, per-source polls, TAK link state).
 
-Auth is handled at the reverse proxy (Authentik forward-auth) or skipped entirely when the backend runs with `AUTH_ENABLED=false`. The UI auto-detects via `GET /api/v1/me` and hides the sign-out link in no-auth mode.
+Auth happens at the reverse proxy (Authentik forward-auth) or is skipped
+when the backend runs with `AUTH_ENABLED=false`. The UI reads
+`GET /api/v1/me` to decide which controls to show: viewers get read-only
+screens, and the sign-out link is hidden in no-auth mode.
 
 ---
 
 ## Stack
 
-- **Next.js 16** (App Router, React 19)
-- **Tailwind v4** + **shadcn/ui** + **Base UI** primitives
-- **TanStack Query** — server state, retry/error handling
-- **react-hook-form** + **zod** — forms + validation
-- **OpenLayers** — map widgets
-- **sonner** — toasts
+- **Next.js 16** (App Router, standalone output) + **React 19**
+- **Tailwind CSS 4** + **shadcn/ui** on **Base UI** primitives
+- **TanStack Query** for server state
+- **react-hook-form** + **zod 4** for forms
+- **OpenLayers** for the bounding-box filter map
+- **sonner** for toasts
 
 ---
 
 ## Development
 
+Requires Node 22+ and pnpm (version pinned in `package.json`; `corepack
+enable` picks it up).
+
 ```bash
 pnpm install
-NEXT_PUBLIC_API_BASE_URL=http://localhost:8000 pnpm dev
+cp .env.example .env    # points the UI at http://localhost:8000
+pnpm dev
 ```
 
-Open <http://localhost:3000>. Run the backend separately (see [takdata README](../takdata/README.md#local-development)) — easiest with `AUTH_ENABLED=false` so requests work without Authentik headers.
+Open <http://localhost:3000>. Run the
+[backend](https://github.com/sheldon-st/takdata#local-development) alongside
+it with `AUTH_ENABLED=false` so requests work without Authentik headers.
 
 ### Scripts
 
-| Command | What it does |
-|---------|--------------|
-| `pnpm dev` | Next dev server with HMR |
-| `pnpm build` | Production build |
-| `pnpm start` | Run production build |
-| `pnpm lint` | ESLint |
+| Command          | What it does                            |
+| ---------------- | --------------------------------------- |
+| `pnpm dev`       | Dev server with HMR                     |
+| `pnpm build`     | Production (standalone) build           |
+| `pnpm start`     | Serve the production build              |
+| `pnpm lint`      | ESLint (Next.js + React Compiler rules) |
+| `pnpm typecheck` | `tsc --noEmit`                          |
+
+CI runs lint, typecheck, build, a production dependency audit and a
+container smoke test on every pull request.
 
 ---
 
 ## Environment variables
 
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `NEXT_PUBLIC_API_BASE_URL` | `""` (same-origin) | Backend base URL. Leave empty in production when frontend and backend sit behind a single reverse-proxy host (e.g. `data.opengeo.space` with `/api` path-routed to the backend). Set explicitly for local dev. |
+Both are **build-time**: Next.js inlines `NEXT_PUBLIC_*` into the browser bundle.
 
-All API calls go through [`lib/api.ts`](lib/api.ts) with `credentials: "include"` so the Authentik session cookie is sent automatically when present.
+| Variable                   | Default            | Purpose                                                                                                          |
+| -------------------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------- |
+| `NEXT_PUBLIC_API_BASE_URL` | `""` (same-origin) | Backend base URL. Leave empty when UI and `/api` share a host (production). Set for local dev.                   |
+| `NEXT_PUBLIC_SIGN_OUT_URL` | opengeo.space URL  | Where **Sign out** sends the user (Authentik end-session endpoint). Only shown when the backend reports auth on. |
+
+All API calls go through [`lib/api.ts`](lib/api.ts) with
+`credentials: "include"`, so the Authentik session cookie is sent when present.
 
 ---
 
 ## Project layout
 
 ```
-app/                Next.js routes (App Router)
-components/         UI components
-  app-shell.tsx     Sidebar + nav + user/logout
-  AdminOnly.tsx     Role-gated wrapper
-  providers.tsx     React Query + theme + auth
-context/
-  AuthContext.tsx   useAuth(), useIsAdmin(), useAuthEnabled()
-hooks/              Custom hooks (WebSocket, etc.)
+app/                    Routes (App Router)
+  page.tsx              Dashboard — TAK link + live enablement status
+  enablements/          Enablement list and detail (config, sources, live stats)
+  packages/             Data package upload / download
+  settings/tak/         TAK server connection + client certificates
+components/
+  app-shell.tsx         Sidebar, nav, user / sign-out
+  AdminOnly.tsx         Role-gated wrapper
+  providers.tsx         React Query, theme, auth, WebSocket providers
+  ws-context.tsx        Live status context (useWsStatus)
+  enablements/          Enablement + source forms, geo filter map
+  ui/                   shadcn/ui components
+context/AuthContext.tsx useAuth(), useIsAdmin(), useAuthEnabled()
+hooks/use-websocket.ts  Reconnecting status stream
 lib/
-  api.ts            Typed fetch wrapper for /api/v1/*
-  types.ts          Types mirroring openapispec.json
-openapispec.json    Backend OpenAPI spec (source of truth for types)
+  api.ts                Typed fetch client + ApiError
+  types.ts              Types mirroring the backend schemas (see /openapi.json)
+  query-keys.ts         TanStack Query keys
 ```
 
 ---
 
 ## Deployment
 
-Built as a Docker image (`ghcr.io/sheldon-st/takdata-frontend:latest`) — CI publishes multi-arch images on push to `main`. The build is defined in [`Dockerfile`](Dockerfile). Run alongside the backend behind a reverse proxy that path-routes `/api/*` to the backend; see [takdata/DEPLOY.md](../takdata/DEPLOY.md).
+CI publishes multi-arch images to `ghcr.io/sheldon-st/takdata-frontend`:
+`latest` and `sha-<short>` from `main`, and `X.Y.Z` / `X.Y` from `vX.Y.Z`
+tags. The image runs as a non-root user with a built-in healthcheck.
 
-For full deployment instructions see [takdata/DEPLOY.md](../takdata/DEPLOY.md).
+[`docker-compose.yml`](docker-compose.yml) deploys the UI and the backend
+together behind Traefik + Authentik on Dokploy. Step-by-step instructions
+are in [takdata/DEPLOY.md](https://github.com/sheldon-st/takdata/blob/main/DEPLOY.md).
