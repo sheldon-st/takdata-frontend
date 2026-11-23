@@ -19,32 +19,47 @@ import type {
 // to use same-origin requests (data.opengeo.space + /api path split).
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") ?? "";
 
-async function request<T>(
-  path: string,
-  options?: RequestInit,
-): Promise<T> {
+/** Non-2xx response from the backend. `detail` is FastAPI's error payload. */
+export class ApiError extends Error {
+  constructor(
+    readonly status: number,
+    readonly body: unknown,
+  ) {
+    const detail = (body as { detail?: unknown } | null)?.detail;
+    super(typeof detail === "string" ? detail : JSON.stringify(detail ?? body));
+    this.name = "ApiError";
+  }
+}
+
+export const isApiError = (e: unknown, status?: number): e is ApiError =>
+  e instanceof ApiError && (status === undefined || e.status === status);
+
+async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  const isForm = options.body instanceof FormData;
   const res = await fetch(`${BASE_URL}${path}`, {
-    credentials: "include",
-    headers: { "Content-Type": "application/json", ...options?.headers },
     ...options,
+    credentials: "include",
+    // Let the browser set the multipart boundary for FormData bodies.
+    headers: isForm
+      ? options.headers
+      : { "Content-Type": "application/json", ...options.headers },
   });
 
   if (!res.ok) {
     const body = await res.json().catch(() => ({ detail: res.statusText }));
-    const err = new Error(
-      typeof body.detail === "string"
-        ? body.detail
-        : JSON.stringify(body.detail),
-    ) as Error & { status: number; body: unknown };
-    err.status = res.status;
-    err.body = body;
-    throw err;
+    throw new ApiError(res.status, body);
   }
 
   // 204 No Content
-  if (res.status === 204) return undefined as unknown as T;
+  if (res.status === 204) return undefined as T;
 
   return res.json() as Promise<T>;
+}
+
+function upload<T>(path: string, file: File): Promise<T> {
+  const form = new FormData();
+  form.append("file", file);
+  return request<T>(path, { method: "POST", body: form });
 }
 
 // ── Auth ─────────────────────────────────────────────────────────────────────
@@ -75,26 +90,7 @@ export const getTakStatus = () =>
 
 export const getCerts = () => request<CertInfo[]>("/api/v1/tak/certs");
 
-export const uploadCert = (file: File) => {
-  const form = new FormData();
-  form.append("file", file);
-  return fetch(`${BASE_URL}/api/v1/tak/certs`, {
-    method: "POST",
-    credentials: "include",
-    body: form,
-  }).then(async (res) => {
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({ detail: res.statusText }));
-      const err = new Error(
-        typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail),
-      ) as Error & { status: number; body: unknown };
-      err.status = res.status;
-      err.body = body;
-      throw err;
-    }
-    return res.json() as Promise<CertInfo>;
-  });
-};
+export const uploadCert = (file: File) => upload<CertInfo>("/api/v1/tak/certs", file);
 
 export const deleteCert = (certId: string) =>
   request<void>(`/api/v1/tak/certs/${certId}`, { method: "DELETE" });
@@ -166,26 +162,8 @@ export const getPackages = () =>
 export const getPackageDownloadUrl = (packageId: string) =>
   `${BASE_URL}/api/v1/packages/${packageId}`;
 
-export const uploadPackage = (file: File) => {
-  const form = new FormData();
-  form.append("file", file);
-  return fetch(`${BASE_URL}/api/v1/packages`, {
-    method: "POST",
-    credentials: "include",
-    body: form,
-  }).then(async (res) => {
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({ detail: res.statusText }));
-      const err = new Error(
-        typeof body.detail === "string" ? body.detail : JSON.stringify(body.detail),
-      ) as Error & { status: number; body: unknown };
-      err.status = res.status;
-      err.body = body;
-      throw err;
-    }
-    return res.json() as Promise<PackageResponse>;
-  });
-};
+export const uploadPackage = (file: File) =>
+  upload<PackageResponse>("/api/v1/packages", file);
 
 export const deletePackage = (packageId: string) =>
   request<void>(`/api/v1/packages/${packageId}`, { method: "DELETE" });

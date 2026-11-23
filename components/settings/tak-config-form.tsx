@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -46,8 +46,8 @@ export function TakConfigForm() {
     register,
     handleSubmit,
     reset,
-    watch,
     setValue,
+    control,
     formState: { errors, isDirty },
   } = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -99,7 +99,10 @@ export function TakConfigForm() {
     onError: (e: Error) => toast.error(`Disconnect failed: ${e.message}`),
   });
 
-  const certPath = watch("cert_path");
+  const [certPath, dontCheckHostname, dontVerify] = useWatch({
+    control,
+    name: ["cert_path", "dont_check_hostname", "dont_verify"],
+  });
 
   const handleCertSelect = (certId: string | null) => {
     setValue("cert_path", certId ? `data/certs/${certId}` : null, {
@@ -167,7 +170,7 @@ export function TakConfigForm() {
             </p>
           </div>
           <Switch
-            checked={watch("dont_check_hostname")}
+            checked={dontCheckHostname}
             onCheckedChange={(v) =>
               setValue("dont_check_hostname", v, { shouldDirty: true })
             }
@@ -182,7 +185,7 @@ export function TakConfigForm() {
             </p>
           </div>
           <Switch
-            checked={watch("dont_verify")}
+            checked={dontVerify}
             onCheckedChange={(v) =>
               setValue("dont_verify", v, { shouldDirty: true })
             }

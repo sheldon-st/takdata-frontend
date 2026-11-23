@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -72,14 +72,7 @@ export function NewEnablementDialog({ onCreated }: NewEnablementDialogProps) {
     enabled: open,
   });
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    watch,
-    setValue,
-    formState: { errors },
-  } = useForm<FormValues>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
       name: "",
@@ -98,6 +91,14 @@ export function NewEnablementDialog({ onCreated }: NewEnablementDialogProps) {
       seed_initial: false,
     },
   });
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    control,
+    formState: { errors },
+  } = form;
 
   const createMut = useMutation({
     mutationFn: (values: FormValues) =>
@@ -147,13 +148,13 @@ export function NewEnablementDialog({ onCreated }: NewEnablementDialogProps) {
     }
   }, [selectedType, setValue]);
 
-  const uidKey = watch("uid_key") ?? "ICAO";
+  const uidKey = useWatch({ control, name: "uid_key" }) ?? "ICAO";
 
+  const [minLat, maxLat, minLon, maxLon] = useWatch({
+    control,
+    name: ["geo_filter_min_lat", "geo_filter_max_lat", "geo_filter_min_lon", "geo_filter_max_lon"],
+  });
   const geoFilterValue: GeoFilterBbox | null = (() => {
-    const minLat = watch("geo_filter_min_lat");
-    const maxLat = watch("geo_filter_max_lat");
-    const minLon = watch("geo_filter_min_lon");
-    const maxLon = watch("geo_filter_max_lon");
     if (
       minLat !== null && minLat !== undefined &&
       maxLat !== null && maxLat !== undefined &&
@@ -346,15 +347,14 @@ export function NewEnablementDialog({ onCreated }: NewEnablementDialogProps) {
             )}
 
             {selectedType.type_id === "synthetic" && (
-              <SyntheticWorkloadFields
-                register={register}
-                watch={watch}
-                setValue={setValue}
-                geoFilterEnabled={geoFilterEnabled}
-                onGeoFilterToggle={handleGeoFilterToggle}
-                geoFilterValue={geoFilterValue}
-                onGeoFilterChange={handleGeoFilterChange}
-              />
+              <FormProvider {...form}>
+                <SyntheticWorkloadFields
+                  geoFilterEnabled={geoFilterEnabled}
+                  onGeoFilterToggle={handleGeoFilterToggle}
+                  geoFilterValue={geoFilterValue}
+                  onGeoFilterChange={handleGeoFilterChange}
+                />
+              </FormProvider>
             )}
 
             {selectedType.type_id === "ais" && (

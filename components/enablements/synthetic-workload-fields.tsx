@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { UseFormRegister, UseFormSetValue, UseFormWatch } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
@@ -27,12 +27,14 @@ export interface SyntheticFormShape {
   features_per_update: number | null;
   selection_strategy: "round_robin" | "random" | "zipf" | null;
   cot_stale: number;
+  seed_initial: boolean | null;
 }
 
+/**
+ * Synthetic harness inputs. Must render inside a react-hook-form
+ * `<FormProvider>` whose values include `SyntheticFormShape`.
+ */
 interface Props {
-  register: UseFormRegister<any>;
-  watch: UseFormWatch<any>;
-  setValue: UseFormSetValue<any>;
   disabled?: boolean;
   geoFilterEnabled: boolean;
   onGeoFilterToggle: (enabled: boolean) => void;
@@ -41,20 +43,30 @@ interface Props {
 }
 
 export function SyntheticWorkloadFields({
-  register,
-  watch,
-  setValue,
   disabled = false,
   geoFilterEnabled,
   onGeoFilterToggle,
   geoFilterValue,
   onGeoFilterChange,
 }: Props) {
-  const N = Number(watch("feature_count")) || 0;
-  const U = Number(watch("updates_per_second")) || 0;
-  const Kraw = Number(watch("features_per_update")) || 0;
+  const { register, setValue, control } = useFormContext<SyntheticFormShape>();
+  const [featureCount, updatesPerSecond, featuresPerUpdate, selectionStrategy, seedInitial] =
+    useWatch({
+      control,
+      name: [
+        "feature_count",
+        "updates_per_second",
+        "features_per_update",
+        "selection_strategy",
+        "seed_initial",
+      ],
+    });
+
+  const N = Number(featureCount) || 0;
+  const U = Number(updatesPerSecond) || 0;
+  const Kraw = Number(featuresPerUpdate) || 0;
   const K = N > 0 ? Math.min(Kraw, N) : Kraw;
-  const strategy = (watch("selection_strategy") as string) || "round_robin";
+  const strategy = selectionStrategy || "round_robin";
 
   const aggregate = U * K;
   const refresh = aggregate > 0 ? N / aggregate : Infinity;
@@ -173,7 +185,7 @@ export function SyntheticWorkloadFields({
           </p>
         </div>
         <Switch
-          checked={Boolean(watch("seed_initial"))}
+          checked={Boolean(seedInitial)}
           onCheckedChange={(v) => setValue("seed_initial", v, { shouldDirty: true })}
           disabled={disabled}
         />
