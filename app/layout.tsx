@@ -4,11 +4,13 @@ import "./globals.css";
 import { Providers } from "@/components/providers";
 import { AppShell } from "@/components/app-shell";
 
-const outfit = JetBrains_Mono({ subsets: ["latin"], variable: "--font-sans" });
+const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "TAK Manager",
-  description: "Manage real-time data streams into your TAK server",
+  title: { default: "TAK Manager", template: "%s · TAK Manager" },
+  description: "Stream live ADS-B, AIS and synthetic tracks into your TAK Server as Cursor-on-Target.",
+  applicationName: "TAK Manager",
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({
@@ -17,7 +19,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={outfit.variable}>
+    <html lang="en" className={mono.variable} suppressHydrationWarning>
       <body className="antialiased">
         <Providers>
           <AppShell>{children}</AppShell>

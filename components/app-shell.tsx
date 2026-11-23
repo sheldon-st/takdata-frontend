@@ -14,6 +14,10 @@ import { useWsStatus } from "@/components/ws-context";
 import { useAuth, useAuthEnabled } from "@/context/AuthContext";
 import { ModeToggle } from "./theme-toggle";
 
+const SIGN_OUT_URL =
+  process.env.NEXT_PUBLIC_SIGN_OUT_URL ??
+  "https://auth.opengeo.space/application/o/tak-manager/end-session/";
+
 const navItems = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/enablements", label: "Enablements", icon: Radio },
@@ -34,10 +38,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside className="flex w-72 flex-col border-r border-border bg-sidebar">
         {/* Logo / brand */}
-        <div className="flex h-14 items-center gap-2 border-b border-border px-4 space-between w-full flex flex-row">
+        <div className="flex h-14 w-full items-center justify-between gap-2 border-b border-border px-4">
           <span className="font-semibold tracking-tight text-sidebar-foreground flex flex-row gap-2">
             <CloudSync className="h-5 w-5 text-primary" />
-            CoT Stream Manager
+            TAK Manager
           </span>
           <ModeToggle />
         </div>
@@ -88,7 +92,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </span>
             {authEnabled && (
               <a
-                href="https://auth.opengeo.space/application/o/tak-manager/end-session/"
+                href={SIGN_OUT_URL}
                 className="shrink-0 text-xs text-sidebar-foreground/70 hover:text-sidebar-foreground"
               >
                 Sign out

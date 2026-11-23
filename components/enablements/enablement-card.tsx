@@ -36,6 +36,7 @@ export function EnablementCard({ enablement, liveStatus }: EnablementCardProps) 
   const running = liveStatus?.running ?? enablement.running;
   const activeItems = liveStatus?.active_items ?? 0;
   const eventsSent = liveStatus?.events_sent ?? 0;
+  const eventsDropped = liveStatus?.events_dropped ?? 0;
   const lastError = liveStatus?.last_error;
 
   const startMut = useMutation({
@@ -115,6 +116,11 @@ export function EnablementCard({ enablement, liveStatus }: EnablementCardProps) 
               </span>{" "}
               sent
             </span>
+            {eventsDropped > 0 && (
+              <span className="text-destructive">
+                <span className="tabular-nums font-medium">{eventsDropped}</span> dropped
+              </span>
+            )}
           </div>
         )}
 
